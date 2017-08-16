@@ -28,3 +28,5 @@ mipOS has been tested on Intel x86 chip, STMicroelectronics® ST7 microcontrolle
 ![mipOS running in a evaluation board](http://www.eantcal.eu/_/rsrc/1434877676414/home/c/mipos/mipos2.jpg)
 
 See also: [http://www.eantcal.eu/home/c/mipos](http://www.eantcal.eu/home/c/mipos).
+
+![mipOS running in a evaluation board](http://www.eantcal.eu/_/rsrc/1434877676414/home/c/mipos/mipos1.jpg)
