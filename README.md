@@ -1,5 +1,3 @@
-# mipos
-
 ![mipOS Logo](http://www.eantcal.eu/_/rsrc/1434877676414/home/c/mipos/m1p0s.png)
 
 Multum In Parvo Operating System is a cooperative multitasking RTOS designed for single-chip micro-controllers with severely limited RAM (e.g. less than 256 bytes) and ROM. It provides the flexibility of an RTOS in low-cost embedded designs.
