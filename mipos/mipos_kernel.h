@@ -282,88 +282,88 @@ mipos_task_t * _mipos_get_p_task(mipos_task_id_t id);
 } while(0)
 
 
-    /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-    /** This function suspends the current task for _COUNT ticks
-     *
-     *  Apply to: NON-RT TASK
-     *
-     *   @param _COUNT : the number of kernel ticks
-     */
+/** This function suspends the current task for _COUNT ticks
+ *
+ *  Apply to: NON-RT TASK
+ *
+ *   @param _COUNT : the number of kernel ticks
+ */
 #define mipos_tm_wkafter(_COUNT) \
   _mipos_tm_wkafter(SIGALM, _COUNT)
 
 
-     /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-     /** This function call mipOS scheduler
-      *
-      *  Apply to: NON-RT TASK
-      *
-      */
+/** This function call mipOS scheduler
+ *
+ *  Apply to: NON-RT TASK
+ *
+ */
 #define mipos_schedule() \
   mipos_tm_wkafter(0)
 
 
-      /* -------------------------------------------------------------------------- */
+  /* -------------------------------------------------------------------------- */
 
-      /** This function will cause the calling task to be
-       *  suspended from execution until the number of real-time
-       *  microseconds specified by the argument
-       *  _COUNT has elapsed.
-       *  The suspension time may be longer than requested due to
-       *  the scheduling of other activity by the system and
-       *  hw timer precision.
-       *
-       *  Apply to: NON-RT TASK
-       *
-       *  @param _COUNT : the number of microseconds, must be less
-       *                  than 2^32.
-       *                  If its value is 0, then the call has no
-       *                  effect.
-       */
+/** This function will cause the calling task to be
+*  suspended from execution until the number of real-time
+*  microseconds specified by the argument
+*  _COUNT has elapsed.
+*  The suspension time may be longer than requested due to
+*  the scheduling of other activity by the system and
+*  hw timer precision.
+*
+*  Apply to: NON-RT TASK
+*
+*  @param _COUNT : the number of microseconds, must be less
+*                  than 2^32.
+*                  If its value is 0, then the call has no
+*                  effect.
+*/
 #ifdef MIPOS_RTC_QUANTUM_IN_MS 
-#	 define mipos_tm_usleep(_COUNT) \
+#     define mipos_tm_usleep(_COUNT) \
      _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)/1000)
-#else		 
-#	 define mipos_tm_usleep(_COUNT) \
+#else         
+#     define mipos_tm_usleep(_COUNT) \
      _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
 #endif
 
 
-       /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-       /** This function will cause the calling task to be
-        *  suspended from execution until the number of real-time
-        *  milliseconds specified by the argument _COUNT has
-        *  elapsed.
-        *  The suspension time may be longer than requested due to
-        *  the scheduling of other activity by the system and hw
-        *  timer precision.
-        *
-        *  Apply to: NON-RT TASK
-        *
-        *
-        *  @param _COUNT : the number of milliseconds, must be less
-        *                  than 4294967.
-        *                  If its value is 0, then the call has no
-        *                  effect.
-        */
+/** This function will cause the calling task to be
+ *  suspended from execution until the number of real-time
+ *  milliseconds specified by the argument _COUNT has
+ *  elapsed.
+ *  The suspension time may be longer than requested due to
+ *  the scheduling of other activity by the system and hw
+ *  timer precision.
+ *
+ *  Apply to: NON-RT TASK
+ *
+ *
+ *  @param _COUNT : the number of milliseconds, must be less
+ *                  than 4294967.
+ *                  If its value is 0, then the call has no
+ *                  effect.
+ */
 #ifdef MIPOS_RTC_QUANTUM_IN_MS
 #  define mipos_tm_msleep(_COUNT) \
-		 _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
+     _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
 #else
 #  define mipos_tm_msleep(_COUNT) \
      _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)*1000)
 #endif
 
 
-        /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-        /** Get the RTC counter in microseconds
-         *
-         *  Apply to: NON-RT TASK, RT-TASK
-         */
+/** Get the RTC counter in microseconds
+ *
+ *  Apply to: NON-RT TASK, RT-TASK
+ */
 void mipos_get_rtc_counter(mipos_rtc_cntr_t * cnt);
 
 
@@ -371,9 +371,9 @@ void mipos_get_rtc_counter(mipos_rtc_cntr_t * cnt);
 
 // Reserved for internal use only
 #define _mipos_t_reset_signal_and_run(_SIGNUM) do {\
-  KERNEL_ENV.task_context_ptr->status = TASK_RUNNING; \
-  KERNEL_ENV.task_context_ptr->signal_waiting &=(mipos_task_sigmask_t)~(_SIGNUM);\
-  KERNEL_ENV.task_context_ptr->signal_pending &=(mipos_task_sigmask_t)~(_SIGNUM);\
+    KERNEL_ENV.task_context_ptr->status = TASK_RUNNING; \
+    KERNEL_ENV.task_context_ptr->signal_waiting &=(mipos_task_sigmask_t)~(_SIGNUM);\
+    KERNEL_ENV.task_context_ptr->signal_pending &=(mipos_task_sigmask_t)~(_SIGNUM);\
 } while(0)
 
 
@@ -385,7 +385,7 @@ void mipos_get_rtc_counter(mipos_rtc_cntr_t * cnt);
   if (KERNEL_ENV.task_context_ptr->status & \
         (TASK_READY|TASK_RUNNING|TASK_SUSPENDED)) \
   {\
-    KERNEL_ENV.task_context_ptr->status = TASK_SUSPENDED;\
+      KERNEL_ENV.task_context_ptr->status = TASK_SUSPENDED;\
   }\
 } while (0)
 
@@ -397,14 +397,14 @@ void mipos_get_rtc_counter(mipos_rtc_cntr_t * cnt);
 do {\
   if(mipos_save_context(KERNEL_ENV.task_context_ptr->reg_state))\
   {\
-    _mipos_t_reset_signal_and_run(_SIGNUM);\
+      _mipos_t_reset_signal_and_run(_SIGNUM);\
   }\
   else \
   {\
     KERNEL_ENV.task_context_ptr->process_stack_pointer = \
       (mipos_reg_t) mipos_get_sp();\
-    _mipos_t_set_wait_for_signal(_SIGNUM);\
-    mipos_context_switch_to(KERNEL_ENV.scheduler_registers_state);\
+      _mipos_t_set_wait_for_signal(_SIGNUM);\
+      mipos_context_switch_to(KERNEL_ENV.scheduler_registers_state);\
   }\
 } while(0)
 
@@ -414,15 +414,15 @@ do {\
 #define _mipos_tm_wkafter(_SIGNUM, _COUNT) do {\
   if(mipos_save_context(KERNEL_ENV.task_context_ptr->reg_state))\
   {\
-    _mipos_t_reset_signal_and_run(_SIGNUM);\
+      _mipos_t_reset_signal_and_run(_SIGNUM);\
   }\
   else \
   {\
-    KERNEL_ENV.task_context_ptr->process_stack_pointer = \
+      KERNEL_ENV.task_context_ptr->process_stack_pointer = \
       (mipos_reg_t) mipos_get_sp();\
-    _mipos_t_set_wait_for_signal(_SIGNUM);\
-    KERNEL_ENV.task_context_ptr->timer_tick_count=(u32)(_COUNT);\
-    mipos_context_switch_to(KERNEL_ENV.scheduler_registers_state);\
+      _mipos_t_set_wait_for_signal(_SIGNUM);\
+      KERNEL_ENV.task_context_ptr->timer_tick_count=(u32)(_COUNT);\
+      mipos_context_switch_to(KERNEL_ENV.scheduler_registers_state);\
   }\
 } while(0)
 
@@ -437,26 +437,26 @@ do {\
     mipos_tm_wkafter(0);\
     while(count--) \
     {\
-      simu_msleep(5);\
-      mipos_tm_wkafter(0);\
+        simu_msleep(5);\
+        mipos_tm_wkafter(0);\
     }\
   } while(0)
 #else //!MIPOS_TARGET_SIMU
 #define _mipos_tm_rtc_quantum_sleep(_SIGNUM, _COUNT) do {\
     if(mipos_save_context(KERNEL_ENV.task_context_ptr->reg_state))\
     {\
-      _mipos_t_reset_signal_and_run(_SIGNUM);\
+        _mipos_t_reset_signal_and_run(_SIGNUM);\
     }\
     else {\
-      mipos_init_cs();\
-      _mipos_t_set_wait_for_signal(_SIGNUM);\
-      mipos_enter_cs();\
+        mipos_init_cs();\
+        _mipos_t_set_wait_for_signal(_SIGNUM);\
+        mipos_enter_cs();\
         KERNEL_ENV.task_context_ptr->rtc_timeout=\
-         KERNEL_ENV.rtc_counter + (u32)(_COUNT);\
-      mipos_leave_cs();\
-      KERNEL_ENV.task_context_ptr->process_stack_pointer = \
+        KERNEL_ENV.rtc_counter + (u32)(_COUNT);\
+        mipos_leave_cs();\
+        KERNEL_ENV.task_context_ptr->process_stack_pointer = \
         (mipos_reg_t) mipos_get_sp();\
-      mipos_context_switch_to(KERNEL_ENV.scheduler_registers_state);\
+        mipos_context_switch_to(KERNEL_ENV.scheduler_registers_state);\
     }\
   } while(0)
 #endif
@@ -476,110 +476,110 @@ do {\
   mipos_task_t * p_task;\
   mipos_init_cs();\
   mipos_enter_cs();\
-    p_task = _mipos_get_p_task (_TID);\
-    if ( p_task ) {\
-      p_task->signal_pending |= \
-        (_SIGNUM) & p_task->signal_mask;\
-    }\
+      p_task = _mipos_get_p_task (_TID);\
+      if ( p_task ) {\
+          p_task->signal_pending |= \
+              (_SIGNUM) & p_task->signal_mask;\
+      }\
   mipos_leave_cs();\
 } while(0)
 
 
- /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
- /** This function freezes a task
-  *
-  *  Apply to: NON-RT TASK, RT-TASK
-  *
-  *  @param id - the task identifier
-  */
+/** This function freezes a task
+ *
+ *  Apply to: NON-RT TASK, RT-TASK
+ *
+ *  @param id - the task identifier
+ */
 #define mipos_t_freeze(_TID) do {\
-  mipos_task_t * p_task;\
-  mipos_init_cs();\
-  mipos_enter_cs();\
+    mipos_task_t * p_task;\
+    mipos_init_cs();\
+    mipos_enter_cs();\
     p_task = _mipos_get_p_task (_TID);\
     if ( p_task ) {\
-      p_task->status |= TASK_FROZEN;\
+         p_task->status |= TASK_FROZEN;\
     }\
   mipos_leave_cs();\
 } while(0)
 
 
-  /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-  /** This function unfreezes a task
-   *
-   *  Apply to: NON-RT TASK, RT-TASK
-   *
-   *   @param id - the task identifier
-   */
+/** This function unfreezes a task
+ *
+ *  Apply to: NON-RT TASK, RT-TASK
+ *
+ *   @param id - the task identifier
+ */
 #define mipos_t_unfreeze(_TID) do {\
-  mipos_task_t * p_task;\
-  mipos_init_cs();\
-  mipos_enter_cs();\
-    p_task = _mipos_get_p_task (_TID);\
-    if ( p_task ) {\
-      p_task->status &= ~TASK_FROZEN;\
-    }\
-  mipos_leave_cs();\
+     mipos_task_t * p_task;\
+     mipos_init_cs();\
+     mipos_enter_cs();\
+     p_task = _mipos_get_p_task (_TID);\
+     if ( p_task ) {\
+          p_task->status &= ~TASK_FROZEN;\
+     }\
+     mipos_leave_cs();\
 } while(0)
 
 
-   /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-   /** This function disables a signal for a task
-    *
-    *  Apply to: NON-RT TASK, RT-TASK
-    *
-    *  @param id - the task identifier
-    *  @param signum - the signal(s) to disable
-    */
+/** This function disables a signal for a task
+ *
+ *  Apply to: NON-RT TASK, RT-TASK
+ *
+ *  @param id - the task identifier
+ *  @param signum - the signal(s) to disable
+ */
 #define mipos_t_sig_ignore(_TID, _SIGNUM) do {\
-  mipos_init_cs();\
-  mipos_enter_cs();\
+    mipos_init_cs();\
+    mipos_enter_cs();\
     mipos_task_t * p_task = _mipos_get_p_task (_TID);\
     if ( p_task ) {\
-      p_task->signal_mask &= \
-        ~((_SIGNUM) & (~SYS_RESERVED_SIGNALS));\
+         p_task->signal_mask &= \
+            ~((_SIGNUM) & (~SYS_RESERVED_SIGNALS));\
     }\
-  mipos_leave_cs();\
+    mipos_leave_cs();\
 } while(0)
 
 
-    /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-    /** This function enables a signal for a task
-     *
-     *  Apply to: NON-RT TASK, RT-TASK
-     *
-     *  @param id - the task identifier
-     *  @param signum - the signal(s) to enable
-     */
+/** This function enables a signal for a task
+ *
+ *  Apply to: NON-RT TASK, RT-TASK
+ *
+ *  @param id - the task identifier
+ *  @param signum - the signal(s) to enable
+ */
 #define mipos_t_sig_allow(_TID, _SIGNUM) do {\
-  mipos_init_cs();\
-  mipos_enter_cs();\
+    mipos_init_cs();\
+    mipos_enter_cs();\
     mipos_task_t * p_task = _mipos_get_p_task (_TID);\
     if ( p_task ) {\
-      p_task->signal_mask |= \
-        (_SIGNUM) & (~SYS_RESERVED_SIGNALS);\
+         p_task->signal_mask |= \
+             (_SIGNUM) & (~SYS_RESERVED_SIGNALS);\
     }\
-  mipos_leave_cs();\
+    mipos_leave_cs();\
 } while(0)
 
 
-     /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-     /** This function register a callback function
-      *  called if mipOS goes in idle state.
-      *  Note that the idle state means there
-      *  are no tasks to process:
-      *  all tasks have completed their own execution
-      *
-      *  Apply to: NON-RT TASK, RT-TASK
-      *
-      *  @param idle_state_notify_cbk: user callback function
-      *  @param param: parameter passed to the callback function
-      */
+/** This function register a callback function
+ *  called if mipOS goes in idle state.
+ *  Note that the idle state means there
+ *  are no tasks to process:
+ *  all tasks have completed their own execution
+ *
+ *  Apply to: NON-RT TASK, RT-TASK
+ *
+ *  @param idle_state_notify_cbk: user callback function
+ *  @param param: parameter passed to the callback function
+ */
 void mipos_set_idle_cbk(
     idle_state_notify_cbk_t idle_state_notify_cbk,
     task_param_t param
