@@ -17,5 +17,5 @@
  - Win32 / Visual Studio / Borland C compiler (32 bit)
  - IAR Embedded Workbench Kickstart for ARM 4.42A+ (32 bit)
  - Cosmic C for STM8/ST7 (8/16 bit platforms)
- - Raisonance for STM8
+ - Raisonance C compiler for STM8
  
