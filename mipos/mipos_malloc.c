@@ -1,3 +1,12 @@
+/*
+* This file is part of mipOS
+* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+* All rights reserved.
+* Licensed under the MIT License.
+* See COPYING file in the project root for full license information.
+*/
+
+
 /* -------------------------------------------------------------------------- */
 
 #ifdef ENABLE_MIPOS_MALLOC

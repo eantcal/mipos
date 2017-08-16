@@ -224,10 +224,10 @@ void longjmpex(jmp_buf env, int val)
         LDW   X, 0x04
 
         JRNE  skip_inc_x;
-    INCW X;
+        INCW X;
 
 skip_inc_x:
-    LDW  Y, SP
+        LDW  Y, SP
         LDW  SP, Y
         SUBW SP, #$0xc; 'sp=sp-12
 

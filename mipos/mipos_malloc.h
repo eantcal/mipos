@@ -46,13 +46,11 @@ size_t mipos_mm_compact_freemem(mm_t * _this, size_t bytes_needed);
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef ENABLE_MIPOS_MALLOC
 void   mipos_set_malloc_mm(mm_t * mm_ptr);
 void * mipos_malloc(size_t size);
 void * mipos_calloc(size_t nmemb, size_t size);
 void   mipos_free(void *ptr);
 void * mipos_realloc(void *ptr, size_t size);
-#endif
 
 /* -------------------------------------------------------------------------- */
 

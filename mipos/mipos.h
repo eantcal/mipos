@@ -14,16 +14,23 @@
 #include "mipos_kernel.h"
 
 #ifdef ENABLE_MIPOS_CONSOLE
-#  include "mipos_console.h"
+#include "mipos_console.h"
 #endif
 
-#ifdef ENABLE_MIPOS_FS
-#  include "mipos_fs.h"
+#if defined(ENABLE_MIPOS_FS) || defined(ENABLE_MIPOS_STDIO)
+#include "mipos_fs.h"
 #endif
 
 #ifdef ENABLE_MIPOS_STDIO
-#  include "mipos_fs.h"
-#  include "mipos_stdio.h"
+#include "mipos_stdio.h"
+#endif
+
+#if defined(ENABLE_MIPOS_MM) || defined(ENABLE_MIPOS_MALLOC)
+#include "mipos_malloc.h"
+#endif
+
+#if defined(ENABLE_MIPOS_MPOOL)
+#include "mipos_mpool.h"
 #endif
 
 

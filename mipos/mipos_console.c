@@ -305,6 +305,10 @@ int sender_task(task_param_t context) {
     mipos_puts("  mipos_malloc\r\n");
 #endif
 
+#ifdef ENABLE_MIPOS_MPOOL
+    mipos_puts("  mipos_mpool\r\n");
+#endif
+
     if (console_prompt) {
         mipos_puts(console_prompt);
     }
@@ -451,7 +455,7 @@ void mem_dump(const int b[],
 
         buf_index = row * 16;
 
-        sprintf(local_buffer, "0x%08X ", (uint32_t) ((const int*)& b[buf_index]));
+        sprintf(local_buffer, "0x%08X ", (unsigned int) ((const int*)& b[buf_index]));
         mipos_puts(local_buffer);
 
         for (col = 0; col < 4; col++) {
@@ -655,7 +659,7 @@ int exec_ps_command(int argc, char * argv[])
                 mipos_dbg_describe_state(p_task->status));
             mipos_puts(tx_buf);
 
-            sprintf(tx_buf, "%08x ", (uint32_t) top_of_stack);
+            sprintf(tx_buf, "%08x ", (unsigned int) top_of_stack);
             mipos_puts(tx_buf);
 
             sprintf(tx_buf, "%08x ", p_task->process_stack_pointer);
