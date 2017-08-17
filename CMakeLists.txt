@@ -10,10 +10,9 @@ set(CMAKE_C_FLAGS
   -DENABLE_MIPOS_MALLOC \
   -DENABLE_MIPOS_MPOOL")
 
-include_directories(mipos)
+include_directories(mipos mipos/arch)
 
 add_library( mipos STATIC
-  mipos/mipos_bsp_simu.c
   mipos/mipos_console.c 
   mipos/mipos_fs.c 
   mipos/mipos_kernel.c 
@@ -22,7 +21,9 @@ add_library( mipos STATIC
   mipos/mipos_queue.c 
   mipos/mipos_stdio.c 
   mipos/mipos_task.c 
-  mipos/mipos_timer.c )
+  mipos/mipos_timer.c 
+  mipos/arch/mipos_bsp_simu.c
+)
 
 
 add_executable( example-helloworld examples/helloworld/main.c)

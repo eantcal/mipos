@@ -1,9 +1,19 @@
-// mipOS filesystem usage example
+/*
+* This file is part of mipOS
+* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+* All rights reserved.
+* Licensed under the MIT License.
+* See COPYING file in the project root for full license information.
+*/
+
+
+/* --------------------------------------------------------------------------- */
 
 #include "mipos.h"
 
 
 /* --------------------------------------------------------------------------- */
+
 // Simple RAM Disk driver
 
 mipos_fs_t mipos_fs;

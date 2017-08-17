@@ -2,33 +2,17 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.c" />
-    <ClCompile Include="../../mipOS\mipos_bsp_simu.c">
+    <ClCompile Include="../../mipOS/arch/mipos_bsp_simu.c">
       <Filter>mipos</Filter>
     </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_console.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_fs.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_kernel.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_queue.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_stdio.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_task.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_timer.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_malloc.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_console.c" />
+    <ClCompile Include="../../mipos/mipos_fs.c" />
+    <ClCompile Include="../../mipos/mipos_kernel.c" />
+    <ClCompile Include="../../mipos/mipos_queue.c" />
+    <ClCompile Include="../../mipos/mipos_stdio.c" />
+    <ClCompile Include="../../mipos/mipos_task.c" />
+    <ClCompile Include="../../mipos/mipos_timer.c" />
+    <ClCompile Include="../../mipos/mipos_malloc.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../../mipOS/mipos.h">
@@ -37,22 +21,10 @@
     <ClInclude Include="../../mipOS/mipos_bsp.h">
       <Filter>mipos</Filter>
     </ClInclude>
-    <ClInclude Include="../../mipOS/mipos_bsp_simu.h">
-      <Filter>mipos</Filter>
-    </ClInclude>
-    <ClInclude Include="../../mipOS/mipos_bsp_stm8.h">
-      <Filter>mipos</Filter>
-    </ClInclude>
-    <ClInclude Include="../../mipOS/mipos_bsp_stm8s.h">
-      <Filter>mipos</Filter>
-    </ClInclude>
-    <ClInclude Include="../../mipOS/mipos_bsp_stm32.h">
+    <ClInclude Include="../../mipOS/arch/mipos_bsp_simu.h">
       <Filter>mipos</Filter>
     </ClInclude>
     <ClInclude Include="../../mipOS/mipos_console.h">
-      <Filter>mipos</Filter>
-    </ClInclude>
-    <ClInclude Include="../../mipOS/mipos_ctxm3.h">
       <Filter>mipos</Filter>
     </ClInclude>
     <ClInclude Include="../../mipOS/mipos_fs.h">
@@ -79,9 +51,7 @@
     <ClInclude Include="../../mipOS/mipos_types.h">
       <Filter>mipos</Filter>
     </ClInclude>
-    <ClInclude Include="../../mipOS\mipos_malloc.h">
-      <Filter>mipos</Filter>
-    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_malloc.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="mipos">

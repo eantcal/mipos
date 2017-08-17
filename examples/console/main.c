@@ -1,5 +1,10 @@
-// console.cpp : Defines the entry point for the console application.
-//
+/*
+* This file is part of mipOS
+* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+* All rights reserved.
+* Licensed under the MIT License.
+* See COPYING file in the project root for full license information.
+*/
 
 #include "mipos.h"
 

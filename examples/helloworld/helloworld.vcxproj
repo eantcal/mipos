@@ -56,7 +56,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU; _CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../mipOS</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../mipos; ../../mipos/arch</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -71,7 +71,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU; _CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../mipOS</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../mipos; ../../mipos/arch</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -80,34 +80,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="../../mipOS/mipos.h" />
-    <ClInclude Include="../../mipOS/mipos_bsp.h" />
-    <ClInclude Include="../../mipOS/mipos_bsp_simu.h" />
-    <ClInclude Include="../../mipOS/mipos_bsp_stm32.h" />
-    <ClInclude Include="../../mipOS/mipos_bsp_stm8.h" />
-    <ClInclude Include="../../mipOS/mipos_bsp_stm8s.h" />
-    <ClInclude Include="../../mipOS/mipos_console.h" />
-    <ClInclude Include="../../mipOS/mipos_ctxm3.h" />
-    <ClInclude Include="../../mipOS/mipos_fs.h" />
-    <ClInclude Include="../../mipOS/mipos_kernel.h" />
-    <ClInclude Include="../../mipOS/mipos_limits.h" />
-    <ClInclude Include="../../mipOS/mipos_mutex.h" />
-    <ClInclude Include="../../mipOS/mipos_queue.h" />
-    <ClInclude Include="../../mipOS/mipos_stdio.h" />
-    <ClInclude Include="../../mipOS/mipos_timer.h" />
-    <ClInclude Include="../../mipOS/mipos_types.h" />
-    <ClInclude Include="..\..\mipOS\mipos_malloc.h" />
+    <ClInclude Include="../../mipos/mipos.h" />
+    <ClInclude Include="../../mipos/mipos_bsp.h" />
+    <ClInclude Include="../../mipos/arch/mipos_bsp_simu.h" />
+    <ClInclude Include="../../mipos/mipos_console.h" />
+    <ClInclude Include="../../mipos/mipos_fs.h" />
+    <ClInclude Include="../../mipos/mipos_kernel.h" />
+    <ClInclude Include="../../mipos/mipos_limits.h" />
+    <ClInclude Include="../../mipos/mipos_mutex.h" />
+    <ClInclude Include="../../mipos/mipos_queue.h" />
+    <ClInclude Include="../../mipos/mipos_stdio.h" />
+    <ClInclude Include="../../mipos/mipos_timer.h" />
+    <ClInclude Include="../../mipos/mipos_types.h" />
+    <ClInclude Include="../../mipos\mipos_malloc.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="../../mipOS\mipos_bsp_simu.c" />
-    <ClCompile Include="../../mipOS\mipos_console.c" />
-    <ClCompile Include="../../mipOS\mipos_fs.c" />
-    <ClCompile Include="../../mipOS\mipos_kernel.c" />
-    <ClCompile Include="../../mipOS\mipos_queue.c" />
-    <ClCompile Include="../../mipOS\mipos_stdio.c" />
-    <ClCompile Include="../../mipOS\mipos_task.c" />
-    <ClCompile Include="../../mipOS\mipos_timer.c" />
-    <ClCompile Include="..\..\mipOS\mipos_malloc.c" />
+    <ClCompile Include="../../mipos/arch/mipos_bsp_simu.c" />
+    <ClCompile Include="../../mipos/mipos_console.c" />
+    <ClCompile Include="../../mipos/mipos_fs.c" />
+    <ClCompile Include="../../mipos/mipos_kernel.c" />
+    <ClCompile Include="../../mipos/mipos_queue.c" />
+    <ClCompile Include="../../mipos/mipos_stdio.c" />
+    <ClCompile Include="../../mipos/mipos_task.c" />
+    <ClCompile Include="../../mipos/mipos_timer.c" />
+    <ClCompile Include="../../mipos/mipos_malloc.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
