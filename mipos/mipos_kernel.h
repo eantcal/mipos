@@ -15,8 +15,11 @@
 
 /* -------------------------------------------------------------------------- */
 
+#define MIPOS_MAJ_VER 1
+#define MIPOS_MIN_VER 99
+
 #define MIPOS_STR_VER \
-  "mipOS v.1.93 - (c) 2005-2017 antonino.calderone@gmail.com" 
+  "mipOS v.1.99 - (c) 2005-2017 antonino.calderone@gmail.com" 
 
 
 /* -------------------------------------------------------------------------- */
@@ -322,12 +325,8 @@ mipos_task_t * _mipos_get_p_task(mipos_task_id_t id);
 *                  If its value is 0, then the call has no
 *                  effect.
 */
-#ifdef MIPOS_RTC_QUANTUM_IN_MS 
-#     define mipos_tm_usleep(_COUNT) \
-     _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)/1000)
-#else         
-#     define mipos_tm_usleep(_COUNT) \
-     _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
+#ifndef mipos_tm_usleep
+#define mipos_tm_usleep(_COUNT) _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
 #endif
 
 
@@ -349,12 +348,8 @@ mipos_task_t * _mipos_get_p_task(mipos_task_id_t id);
  *                  If its value is 0, then the call has no
  *                  effect.
  */
-#ifdef MIPOS_RTC_QUANTUM_IN_MS
-#  define mipos_tm_msleep(_COUNT) \
-     _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
-#else
-#  define mipos_tm_msleep(_COUNT) \
-     _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)*1000)
+#ifndef mipos_tm_msleep
+#define mipos_tm_msleep(_COUNT) _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
 #endif
 
 

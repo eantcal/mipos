@@ -39,7 +39,7 @@
 /* Used only for debugging purpose on 
    Windows and Linux platforms */
 #ifndef KERNEL_TICK_DBG_IDLE_TIME_MS
-#  define KERNEL_TICK_DBG_IDLE_TIME_MS 0
+#  define KERNEL_TICK_DBG_IDLE_TIME_MS 10
 #endif
 
 #if (defined(_MSC_VER) || defined(__BORLANDC__))
@@ -54,8 +54,10 @@
 #else //  LINUX
 
 #   include <unistd.h>
-#   define KERNEL_DBG_DELAY usleep((KERNEL_TICK_DBG_IDLE_TIME_MS) * 1000)
+#   define KERNEL_DBG_DELAY usleep((KERNEL_TICK_DBG_IDLE_TIME_MS) * 100)
 #   define simu_msleep(_MS) usleep((_MS)*1000)
+#  define mipos_tm_msleep(_COUNT) \
+     _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)*50)
 #endif
 
 #ifndef _DEBUG

@@ -26,7 +26,7 @@
     <ClCompile Include="../../mipOS\mipos_timer.c">
       <Filter>mipos</Filter>
     </ClCompile>
-    <ClCompile Include="../../mipOS\mipos_malloc.c">
+    <ClCompile Include="..\..\mipOS\mipos_malloc.c">
       <Filter>mipos</Filter>
     </ClCompile>
   </ItemGroup>
@@ -79,13 +79,13 @@
     <ClInclude Include="../../mipOS/mipos_types.h">
       <Filter>mipos</Filter>
     </ClInclude>
-    <ClInclude Include="../../mipOS\mipos_malloc.h">
+    <ClInclude Include="..\..\mipOS\mipos_malloc.h">
       <Filter>mipos</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="mipos">
-      <UniqueIdentifier>{6993fdf9-f5bc-4d6c-82d8-499b27aa63af}</UniqueIdentifier>
+      <UniqueIdentifier>{75a802d4-7474-45c7-bb80-e8c4e467efb7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -49,6 +49,7 @@
 #if (defined(_MSC_VER) || defined(__BORLANDC__))
 unsigned int mipos_get_sp() {
     unsigned int stack_ptr;
+
     __asm { mov eax, esp }
     __asm { mov[stack_ptr], eax }
 
@@ -97,20 +98,23 @@ static int _kbhit(void)
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     fcntl(STDIN_FILENO, F_SETFL, oldf);
 
-    if(ch != EOF)
-    {
+    if(ch != EOF) {
         ungetc(ch, stdin);
         return 1;
     }
 }
 
 static int _getch(void) {
-   int ch = getchar();
+    int ch = getchar();
 
-   if (ch == 0xA) // TODO 
-      return 0xD;
+    switch (ch) {
+       case 0xA:
+          return 0xD;
+       case 0x7f:
+          return '\b';
+    }
 
-   return ch;
+    return ch;
 }
 
 #endif
@@ -137,6 +141,7 @@ unsigned char mipos_console_get_char(void)
 void mipos_bsp_rs232_putc(unsigned char c) {
     char s[2] = { c, 0 };
     printf("%s",s);
+    fflush(stdout);
 }
 
 

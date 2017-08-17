@@ -58,8 +58,6 @@ static int idle_task(task_param_t param)
 
 void mipos_update_rtc(u32 quantum)
 {
-    //If MIPOS_RTC_QUANTUM_IN_MS is defined, 
-    //then quantum should be a ms-value, else a us-value
     KERNEL_ENV.rtc_counter += quantum;
 
     mipos_kick_watchdog();
@@ -352,7 +350,7 @@ scheduler:
         {
             //  Task state is "running", but its startup 
             //  routine terminated and the task hasn't ever been
-            //  deleted, so it remains a zombie until it will be deleted !
+            //  deleted, so it remains a zombie until it will be deleted
             case TASK_RUNNING:
             {
                 mipos_init_cs();
@@ -367,14 +365,12 @@ scheduler:
             {
                 mipos_init_cs();
                 mipos_enter_cs();
-                if (p_task->signal_waiting & SIGALM)
-                {
-                    if (p_task->timer_tick_count > 0)
-                    {
+
+                if (p_task->signal_waiting & SIGALM) {
+                    if (p_task->timer_tick_count > 0) {
                         --p_task->timer_tick_count;
                     }
-                    else
-                    {
+                    else {
                         p_task->signal_pending |= SIGALM;
                     }
                 }
@@ -390,8 +386,7 @@ scheduler:
                 }
                 mipos_leave_cs();
 
-                if (p_task->signal_pending & p_task->signal_waiting)
-                {
+                if (p_task->signal_pending & p_task->signal_waiting) {
                     mipos_init_cs();
                     mipos_enter_cs();
                     p_task->u_flags.flags.wkup = 1;
@@ -407,13 +402,13 @@ scheduler:
             break;
 
             // task is ready
-            case TASK_READY:
-            {
+            case TASK_READY: {
                 mipos_init_cs();
                 mipos_enter_cs();
                 p_task->status = TASK_RUNNING;
                 mipos_leave_cs();
             }
+
             goto dispatcher;
 
             // unexpected task status (BUG ?!): panic !!!

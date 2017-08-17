@@ -55,7 +55,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU; _CRT_SECURE_NO_WARNINGS;MIPOS_ADVANCED_FEATURES</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU; _CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../mipOS</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -70,7 +70,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU; _CRT_SECURE_NO_WARNINGS;MIPOS_ADVANCED_FEATURES</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU; _CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>../../mipOS</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -96,7 +96,7 @@
     <ClInclude Include="../../mipOS/mipos_stdio.h" />
     <ClInclude Include="../../mipOS/mipos_timer.h" />
     <ClInclude Include="../../mipOS/mipos_types.h" />
-    <ClInclude Include="..\..\mipOS\mipos_malloc.h" />
+    <ClInclude Include="../../mipOS\mipos_malloc.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../../mipOS\mipos_bsp_simu.c" />
@@ -107,7 +107,7 @@
     <ClCompile Include="../../mipOS\mipos_stdio.c" />
     <ClCompile Include="../../mipOS\mipos_task.c" />
     <ClCompile Include="../../mipOS\mipos_timer.c" />
-    <ClCompile Include="..\..\mipOS\mipos_malloc.c" />
+    <ClCompile Include="../../mipOS\mipos_malloc.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

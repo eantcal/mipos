@@ -623,15 +623,12 @@ bool_t mipos_fs_read_file(
     tmp_rbytes = bytes_to_read;
 
     for (;;) {
-        // Read from the cluster min between the bytes_to_read 
-        // and remainig bytes to read
         read_cluster(fs_ptr,
             cluster,
             cluster_offset,
             dest_pointer,
             &tmp_rbytes);
 
-        // If an error occours terminate the loop
         if (tmp_rbytes == 0) {
             mipos_fs_last_error_code_t =
                 mipos_fs_ERRCODE__READ_NOT_COMPLETED;
@@ -643,8 +640,6 @@ bool_t mipos_fs_read_file(
         // Reset cluster_offset (set it to begin of cluster)
         cluster_offset = 0;
 
-        // Increment bytes_read and dest_pointer 
-        // of the read bytes count
         bytes_read += tmp_rbytes;
         dest_pointer += tmp_rbytes;
 
@@ -673,6 +668,7 @@ bool_t mipos_fs_read_file(
         }
 
         cluster = next_cluster;
+
         // Set tmp_rbytes to the left bytes count
         tmp_rbytes = bytes_to_read - bytes_read;
     }
@@ -757,7 +753,7 @@ bool_t mipos_fs_write_file(
         if (file_ctl.seek_pointer > 0) {
 
             // We must link last allocated 
-            // cluster with the new one
+            // cluster to the new one
             if (!get_cluster_seek_pt(fs_ptr,
                 &file_fs_desc,
                 &file_ctl,
@@ -849,6 +845,7 @@ bool_t mipos_fs_write_file(
                     end_loop = TRUE;
                 }
             }
+
             // NO, get the next cluster
             else if (!get_next_cluster(fs_ptr,
                 prev_cluster,
@@ -1009,8 +1006,6 @@ bool_t mipos_fs_rename_file(
             &fs_ptr->ftbl.file_fs_desc->filename[file_handle],
             new_filename,
             mipos_fs_MAX_FILENAME_LENGTH);
-
-        
 
         mipos_fs_unlock_access(fs_ptr);
     }
@@ -1242,8 +1237,6 @@ bool_t mipos_fs_get_fd(
     // Return false if the file does not exist
     return bool_t_cast(file_fs_desc->erased == FALSE);
 }
-
-
 
 
 /* -------------------------------------------------------------------------- */

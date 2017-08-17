@@ -89,9 +89,17 @@ int mipos_bsp_check_reset_type( void );
 //Required for simulation code compatibility
 #define inline                              /*EMPTY*/
 #define MIPOS_IGNORE_TASK_PRIORITY
-#define MIPOS_RTC_QUANTUM_IN_MS
 #define MIPOS_LONG_LONG_NOT_SUPPORTED
 #define ENABLE_WATCHDOG
+
+/* -------------------------------------------------------------------------- */
+
+#define mipos_tm_msleep(_COUNT) \
+     _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)*1000)
+
+#define mipos_tm_usleep(_COUNT) \
+     _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)/1000)
+
 
 /* -------------------------------------------------------------------------- */
 

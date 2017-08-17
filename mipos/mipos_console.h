@@ -72,6 +72,14 @@ void mipos_console_put_char(unsigned char c);
 
 /* -------------------------------------------------------------------------- */
 
+/** Puts a string on the console
+ *  @param str: the string pointer
+ */
+void mipos_puts(const char* str);
+
+
+/* -------------------------------------------------------------------------- */
+
 /** Gets a character from the console
  *  @return the read character or NULL if no any
  */
