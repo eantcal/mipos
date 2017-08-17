@@ -24,7 +24,8 @@ int disk_read(char* dstbuf, uint32_t bsize, uint32_t soffset) {
 
 /* --------------------------------------------------------------------------- */
 
-void exec_cmd(char* cmd_str, int cmd_len) {
+static int exec_command(int argc, char * argv[])
+{
     mipos_fs_file_handle_t file_handle = 0;
     mipos_fs_fd_t fd;
     char volume_dsc[mipos_fs_MAX_VOLUME_LENGTH] = { 0 };
@@ -32,7 +33,7 @@ void exec_cmd(char* cmd_str, int cmd_len) {
     mipos_fs_get_label(&mipos_fs, volume_dsc);
 
     //list all files in the RAMDISK
-    if (0 == strcmp(cmd_str, "ls")) {
+    if (0 == strcmp(argv[0], "ls")) {
 
         mipos_printf("Volume label %s\n", volume_dsc);
         
@@ -48,7 +49,7 @@ void exec_cmd(char* cmd_str, int cmd_len) {
     }
 
     //Show all files and related content
-    if (0 == strcmp(cmd_str, "cat")) {
+    if (0 == strcmp(argv[0], "cat")) {
         mipos_printf("Volume label %s\n", volume_dsc);
 
         if (mipos_fs_ffirst(&mipos_fs, "*", &file_handle)) {
@@ -74,7 +75,20 @@ void exec_cmd(char* cmd_str, int cmd_len) {
             } while (1);
         }
     }
+
+    return 0;
 }
+
+
+/* --------------------------------------------------------------------------- */
+
+static
+mipos_console_cmd_t user_cmd_list[] = {
+    { "ls", exec_command,   "ls - shows list of files" },
+    { "cat", exec_command,  "cat - shows list and content of files" },
+        
+    CMD_LIST_END
+};
 
 
 /* --------------------------------------------------------------------------- */
@@ -89,9 +103,12 @@ int root_task(task_param_t param)
     cinit.prompt = "\nmipOS>";
     cinit.end_line_char = '\r';
     cinit.flags = CONSOLE_FLG_ECHO | CONSOLE_TX_CRLF;
-    cinit.recv_cbk = exec_cmd;
+    cinit.recv_cbk = 0;
+
+    mipos_console_register_cmd_list(user_cmd_list);
 
     mipos_console_init(&cinit);
+        
 
     mipos_fs.io_dev.io_read = disk_read;
     mipos_fs.io_dev.io_write = disk_write;

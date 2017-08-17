@@ -10,6 +10,9 @@ static char root_stack [16 * 1024] = { 0 };
 static char task1_stack[16 * 1024] = { 0 };
 static char task2_stack[16 * 1024] = { 0 };
 
+int task1(task_param_t param);
+int task2(task_param_t param);
+
 
 /* --------------------------------------------------------------------------- */
 
@@ -17,9 +20,14 @@ int task1(task_param_t param)
 {
     (void)param;
 
-    mipos_printf("Task1 started\n\n");
+    mipos_printf("\nTask1 started\n");
 
-    mipos_tm_msleep( 500 );
+    mipos_t_create("task2",
+        task2,
+        (task_param_t)0,
+        task2_stack,
+        sizeof(task2_stack),
+        MIPOS_NO_RT);
 
     while (1) {
         mipos_puts(".");
@@ -36,7 +44,7 @@ int task2(task_param_t param)
 {
     (void)param;
 
-    mipos_printf("Task2 started\n\n");
+    mipos_printf("Task2 started\n");
 
     while (1) {
         mipos_puts("x");
@@ -59,16 +67,10 @@ int root_task(task_param_t param)
         (task_param_t)0,
         task1_stack,
         sizeof(task1_stack),
-        MIPOS_NO_RT);
-
-     mipos_t_create("task2",
-        task2,
-        (task_param_t)0,
-        task2_stack,
-        sizeof(task2_stack),
-        MIPOS_NO_RT);
-
-    mipos_t_suspend();
+        MIPOS_NO_RT);    
+         
+    // root task has completed its job so it can terminate itself
+    mipos_t_delete(0); 
 
     return 0; // this statement is never executed
 }

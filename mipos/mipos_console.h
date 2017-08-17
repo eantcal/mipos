@@ -133,14 +133,14 @@ typedef struct _console_cmd_t {
 
 /* -------------------------------------------------------------------------- */
 
-/** console_register_cmd_list registers a list of command
+/** mipos_console_register_cmd_list registers a list of command
  *  Each command is referred to a call-back function.
  *  Parameters typed after command string on the terminal, separated by space
  *  or tab character are passed within an array of char* elements.
  *  The number of arguments is passed to the callback function as first
  *  parameter of the function.
  */
-void console_register_cmd_list(mipos_console_cmd_t cmd_list[]);
+void mipos_console_register_cmd_list(mipos_console_cmd_t cmd_list[]);
 
 
 /* -------------------------------------------------------------------------- */

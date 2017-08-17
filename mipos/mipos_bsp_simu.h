@@ -46,7 +46,8 @@
 # if (defined(_WIN32))
 #   include <windows.h>
 #   define KERNEL_DBG_DELAY Sleep(KERNEL_TICK_DBG_IDLE_TIME_MS)
-# define simu_msleep(_MS) Sleep(_MS)
+#   define simu_msleep(_MS) Sleep(_MS)
+#   define mipos_tm_msleep(_COUNT) _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)*20)
 # endif
 # pragma check_stack(off)
 # pragma optimize( "agpswy", on)

@@ -43,12 +43,17 @@ unsigned int mipos_bsp_rs232_recv_byte(unsigned char *key);
 void mipos_bsp_rs232_putc(unsigned char c);
 
 
-#ifdef MIPOS_TARGET_SIMU
-# include "mipos_bsp_simu.h"
-#elif defined(__ICCARM__)
+/* -------------------------------------------------------------------------- */
+
+#if MIPOS_TARGET_STM32      // defined(__ICCARM__)
 # include "mipos_bsp_stm32.h"
-#elif defined(__CSMC__) || defined(__RCSTM8__)
+#elif MIPOS_TARGET_STM8       // defined(__CSMC__) || defined(__RCSTM8__)
 # include "mipos_bsp_stm8.h"
+#else // MIPOS_TARGET_SIMU
+#ifndef MIPOS_TARGET_SIMU
+#define MIPOS_TARGET_SIMU
+#endif
+# include "mipos_bsp_simu.h"
 #endif
 
 #endif // ... mipos_BSP_H__
