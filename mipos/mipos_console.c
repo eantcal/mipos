@@ -80,7 +80,7 @@ static mipos_console_cmd_t * registered_cmd_list = 0;
 
 /* -------------------------------------------------------------------------- */
 
-void console_register_cmd_list(mipos_console_cmd_t _cmd_list[])
+void mipos_console_register_cmd_list(mipos_console_cmd_t _cmd_list[])
 {
     registered_cmd_list = &_cmd_list[0];
 }
@@ -244,7 +244,7 @@ int recvr_task(task_param_t context) {
                     try_exec_cmd(cmd_str, cmd_len,
                         registered_cmd_list) >= 0) {
                 }
-                else {
+                else if (recv_cbk) {
                     recv_cbk((unsigned char*)cmd_str, cmd_len);
                 }
 
@@ -510,10 +510,7 @@ void mem_dump(const int b[],
 static
 int exec_help_command(int argc, char* argv[])
 {
-    mipos_puts("mipOS command list:\r\n");
     show_command_list(mipos_cmd_list);
-
-    mipos_puts("\r\nUser-defined command list:\r\n");
     show_command_list(registered_cmd_list);
     return 0;
 }
@@ -681,7 +678,6 @@ int exec_ps_command(int argc, char * argv[])
 
 
 /* -------------------------------------------------------------------------- */
-
 
 #else
 #warning macro ENABLE_MIPOS_CONSOLE not defined, console will be not compiled
