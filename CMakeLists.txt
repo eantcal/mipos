@@ -29,6 +29,9 @@ add_library( mipos STATIC
 add_executable( example-helloworld examples/helloworld/main.c)
 target_link_libraries( example-helloworld mipos )
 
+add_executable( example-timers examples/timers/main.c)
+target_link_libraries( example-timers mipos )
+
 add_executable( example-multitask examples/multitask/main.c)
 target_link_libraries( example-multitask mipos )
 

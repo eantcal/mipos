@@ -39,7 +39,7 @@
 /* Used only for debugging purpose on 
    Windows and Linux platforms */
 #ifndef KERNEL_TICK_DBG_IDLE_TIME_MS
-#  define KERNEL_TICK_DBG_IDLE_TIME_MS 10
+#  define KERNEL_TICK_DBG_IDLE_TIME_MS 0
 #endif
 
 #if (defined(_MSC_VER) || defined(__BORLANDC__))
@@ -47,7 +47,6 @@
 #   include <windows.h>
 #   define KERNEL_DBG_DELAY Sleep(KERNEL_TICK_DBG_IDLE_TIME_MS)
 #   define simu_msleep(_MS) Sleep(_MS)
-#   define mipos_tm_msleep(_COUNT) _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)*20)
 # endif
 # pragma check_stack(off)
 # pragma optimize( "agpswy", on)
@@ -57,8 +56,6 @@
 #   include <unistd.h>
 #   define KERNEL_DBG_DELAY usleep((KERNEL_TICK_DBG_IDLE_TIME_MS) * 100)
 #   define simu_msleep(_MS) usleep((_MS)*1000)
-#  define mipos_tm_msleep(_COUNT) \
-     _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)*50)
 #endif
 
 #ifndef _DEBUG
@@ -125,25 +122,24 @@ extern unsigned int mipos_get_sp();
 #if (defined(_WIN32))
 #define mipos_bsp_notify_scheduler_epoch()\
   do {\
-    static SYSTEMTIME st_old = {0};\
-    static SYSTEMTIME st = {0};\
-    GetSystemTime( & st );\
-    if ( memcmp( &st, &st_old, sizeof(st) ) != 0 ) {\
-      mipos_update_rtc( st.wMilliseconds * 1000 );\
-    }\
-  } while (0)
+         static unsigned long long old_tc = 0; \
+         unsigned long long tc = GetTickCount(); \
+         if (old_tc) \
+            mipos_update_rtc( (unsigned long long) (tc-old_tc) / 1000 );\
+         old_tc = tc; \
+     \
+     } while (0)
 #else
-#include <time.h>
-#include <math.h>
+#include <sys/time.h>
 #define mipos_bsp_notify_scheduler_epoch()\
   do {\
-    long   ms;\
-    time_t s;\
-    struct timespec spec;\
-    clock_gettime(CLOCK_REALTIME, &spec);\
-    s  = spec.tv_sec;\
-    ms = s * 1000 + (spec.tv_nsec / 1.0e6);\
-    mipos_update_rtc( ms * 1000 );\
+         struct timeval tv;\
+         static unsigned long long old_tc = 0; \
+         gettimeofday(&tv, 0); \
+         unsigned long long tc=((unsigned long long)((tv.tv_sec * 1000ul) + (tv.tv_usec / 1000ul)) ); \
+         if (old_tc) \
+             mipos_update_rtc( (unsigned long long) (tc-old_tc) );\
+         old_tc = tc; \
   } while (0)
 #endif
 

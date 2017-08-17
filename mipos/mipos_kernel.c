@@ -59,7 +59,6 @@ static int idle_task(task_param_t param)
 void mipos_update_rtc(u32 quantum)
 {
     KERNEL_ENV.rtc_counter += quantum;
-
     mipos_kick_watchdog();
 }
 

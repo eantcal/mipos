@@ -22,7 +22,7 @@
           cannot be null
  * @param on_cancel_handler callback-function called upon timer cancellation, 
           can be null
- * @param interval timer intervall in uS
+ * @param interval timer intervall in mS
  * @param context parameter passed to callback-functions
  * @param periodic flag, non-zero-> periodic timer
  *

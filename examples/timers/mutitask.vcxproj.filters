@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.c" />
+    <ClCompile Include="../../mipos/mipos_bsp_simu.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_console.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_fs.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_kernel.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_queue.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_stdio.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_task.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_timer.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+    <ClCompile Include="../../mipos/mipos_malloc.c">
+      <Filter>mipos</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../../mipos/mipos.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_bsp.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/arch/mipos_bsp_simu.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_console.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_fs.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_kernel.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_limits.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_mutex.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_queue.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_stdio.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_timer.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_types.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+    <ClInclude Include="../../mipos/mipos_malloc.h">
+      <Filter>mipos</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="mipos">
+      <UniqueIdentifier>{75a802d4-7474-45c7-bb80-e8c4e467efb7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

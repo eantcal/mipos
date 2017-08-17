@@ -425,18 +425,6 @@ do {\
 /* -------------------------------------------------------------------------- */
 
 // Reserved for internal use only
-#ifdef MIPOS_TARGET_SIMU 
-#define _mipos_tm_rtc_quantum_sleep(_SIGNUM, _COUNT) do \
-  {\
-    int count = ((int)(_COUNT))/(4000/5);\
-    mipos_tm_wkafter(0);\
-    while(count--) \
-    {\
-        simu_msleep(5);\
-        mipos_tm_wkafter(0);\
-    }\
-  } while(0)
-#else //!MIPOS_TARGET_SIMU
 #define _mipos_tm_rtc_quantum_sleep(_SIGNUM, _COUNT) do {\
     if(mipos_save_context(KERNEL_ENV.task_context_ptr->reg_state))\
     {\
@@ -447,14 +435,13 @@ do {\
         _mipos_t_set_wait_for_signal(_SIGNUM);\
         mipos_enter_cs();\
         KERNEL_ENV.task_context_ptr->rtc_timeout=\
-        KERNEL_ENV.rtc_counter + (u32)(_COUNT);\
+            KERNEL_ENV.rtc_counter + (u32)(_COUNT);\
         mipos_leave_cs();\
         KERNEL_ENV.task_context_ptr->process_stack_pointer = \
         (mipos_reg_t) mipos_get_sp();\
         mipos_context_switch_to(KERNEL_ENV.scheduler_registers_state);\
     }\
   } while(0)
-#endif
 
 
 /* -------------------------------------------------------------------------- */
