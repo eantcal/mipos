@@ -9,8 +9,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __mipos_fs_H__
-#define __mipos_fs_H__
+#ifndef __mipos_FS_H__
+#define __mipos_FS_H__
 
 
 /* -------------------------------------------------------------------------- */
@@ -51,15 +51,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-typedef int(*mipos_disk_write_t)(const char* srcbuf, uint32_t bsize, uint32_t doffset);
-typedef int(*mipos_disk_read_t)(char* dstbuf, uint32_t bsize, uint32_t soffset);
+typedef int(*mipos_io_write_t)(const char* srcbuf, uint32_t bsize, uint32_t doffset);
+typedef int(*mipos_io_read_t)(char* dstbuf, uint32_t bsize, uint32_t soffset);
 
 
 /* -------------------------------------------------------------------------- */
 
 typedef struct _mipos_io_dev_t {
-    mipos_disk_write_t io_write;
-    mipos_disk_read_t  io_read;
+    mipos_io_write_t io_write;
+    mipos_io_read_t  io_read;
 }
 mipos_io_dev_t;
 
@@ -171,7 +171,7 @@ typedef struct _mipos_fs_t {
     mipos_io_dev_t  io_dev;       // device driver specific io API
     mipos_fs_ctl_t  file_ctl[mipos_fs_MAX_N_OF_FILES];
     mipos_fs_ftbl_t ftbl;         // sync with device device   
-    mipos_mtx_t         lock;
+    mipos_mtx_t     lock;
 } mipos_fs_t;
 
 

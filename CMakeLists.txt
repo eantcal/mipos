@@ -22,9 +22,17 @@ add_library( mipos STATIC
   mipos/mipos_stdio.c 
   mipos/mipos_task.c 
   mipos/mipos_timer.c 
+  mipos/mipos_diskio.c 
   mipos/arch/mipos_bsp_simu.c
 )
 
+add_library( fatfs STATIC
+  fatfs/diskio.c
+  fatfs/ff.c
+  fatfs/ff.h
+  fatfs/ffsystem.c
+  fatfs/ffunicode.c
+)
 
 add_executable( example-helloworld examples/helloworld/main.c)
 target_link_libraries( example-helloworld mipos )
@@ -40,3 +48,4 @@ target_link_libraries( example-console mipos )
 
 add_executable( example-filesystem examples/filesystem/main.c)
 target_link_libraries( example-filesystem mipos )
+
