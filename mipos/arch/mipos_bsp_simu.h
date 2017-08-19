@@ -123,9 +123,9 @@ extern unsigned int mipos_get_sp();
 #define mipos_bsp_notify_scheduler_epoch()\
   do {\
          static unsigned long long old_tc = 0; \
-         unsigned long long tc = GetTickCount(); \
+         unsigned long long tc = GetTickCount64(); \
          if (old_tc) \
-            mipos_update_rtc( (unsigned long long) (tc-old_tc) / 1000 );\
+            mipos_update_rtc( (unsigned long long) (tc-old_tc) );\
          old_tc = tc; \
      \
      } while (0)

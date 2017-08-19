@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{D4BDFBF4-29EF-4D8E-A259-D1A57034D522}</ProjectGuid>
+    <ProjectGuid>{AE21CF1A-552F-4183-98E9-D702E6BEC0E6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>timers</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>

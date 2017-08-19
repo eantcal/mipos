@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="../../mipos/mipos_console.c" />
+    <ClCompile Include="../../mipos/mipos_fs.c" />
+    <ClCompile Include="../../mipos/mipos_kernel.c" />
+    <ClCompile Include="../../mipos/mipos_queue.c" />
+    <ClCompile Include="../../mipos/mipos_stdio.c" />
+    <ClCompile Include="../../mipos/mipos_task.c" />
+    <ClCompile Include="../../mipos/mipos_timer.c" />
+    <ClCompile Include="../../mipos/mipos_malloc.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="../../mipos/arch/mipos_bsp_simu.c">
+      <Filter>arch</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../../mipos/mipos.h" />
+    <ClInclude Include="../../mipos/mipos_bsp.h" />
+    <ClInclude Include="../../mipos/mipos_console.h" />
+    <ClInclude Include="../../mipos/mipos_fs.h" />
+    <ClInclude Include="../../mipos/mipos_kernel.h" />
+    <ClInclude Include="../../mipos/mipos_limits.h" />
+    <ClInclude Include="../../mipos/mipos_mutex.h" />
+    <ClInclude Include="../../mipos/mipos_queue.h" />
+    <ClInclude Include="../../mipos/mipos_stdio.h" />
+    <ClInclude Include="../../mipos/mipos_timer.h" />
+    <ClInclude Include="../../mipos/mipos_types.h" />
+    <ClInclude Include="../../mipos/mipos_malloc.h" />
+    <ClInclude Include="../../mipos/arch/mipos_bsp_simu.h">
+      <Filter>arch</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="arch">
+      <UniqueIdentifier>{49545a49-b15b-43e3-a0dd-6ffc2bf9eb9f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

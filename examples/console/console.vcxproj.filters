@@ -2,9 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.c" />
-    <ClCompile Include="../../mipOS/arch/mipos_bsp_simu.c">
-      <Filter>mipos</Filter>
-    </ClCompile>
     <ClCompile Include="../../mipos/mipos_console.c" />
     <ClCompile Include="../../mipos/mipos_fs.c" />
     <ClCompile Include="../../mipos/mipos_kernel.c" />
@@ -13,15 +10,15 @@
     <ClCompile Include="../../mipos/mipos_task.c" />
     <ClCompile Include="../../mipos/mipos_timer.c" />
     <ClCompile Include="../../mipos/mipos_malloc.c" />
+    <ClCompile Include="../../mipos/arch/mipos_bsp_simu.c">
+      <Filter>arch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../../mipOS/mipos.h">
       <Filter>mipos</Filter>
     </ClInclude>
     <ClInclude Include="../../mipOS/mipos_bsp.h">
-      <Filter>mipos</Filter>
-    </ClInclude>
-    <ClInclude Include="../../mipOS/arch/mipos_bsp_simu.h">
       <Filter>mipos</Filter>
     </ClInclude>
     <ClInclude Include="../../mipOS/mipos_console.h">
@@ -52,10 +49,16 @@
       <Filter>mipos</Filter>
     </ClInclude>
     <ClInclude Include="../../mipos/mipos_malloc.h" />
+    <ClInclude Include="../../mipos/arch/mipos_bsp_simu.h">
+      <Filter>arch</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="mipos">
       <UniqueIdentifier>{6993fdf9-f5bc-4d6c-82d8-499b27aa63af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch">
+      <UniqueIdentifier>{6e8354f8-3a69-4db8-a0c0-a18d7f1f1b1f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

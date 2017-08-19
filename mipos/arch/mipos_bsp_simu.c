@@ -7,9 +7,12 @@
 */
 
 
+/* --------------------------------------------------------------------------- */
+
 #include "mipos_kernel.h"
 #include "mipos_bsp.h"
 #include <stdint.h>
+
 
 /* --------------------------------------------------------------------------- */
 
@@ -139,9 +142,7 @@ unsigned char mipos_console_get_char(void)
 /* --------------------------------------------------------------------------- */
 
 void mipos_bsp_rs232_putc(unsigned char c) {
-    char s[2] = { c, 0 };
-    printf("%s",s);
-    fflush(stdout);
+    putc(c, stdout);
 }
 
 
