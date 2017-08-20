@@ -33,7 +33,11 @@ int mipos_add_disk_driver( const mipos_disk_t * drv_ptr )
         return -1;
     }
 
-    memcpy( &_mipos_disk_drv[ _mipos_disk_drv_cnt-1 ], drv_ptr, sizeof(mipos_disk_t) );
+    memcpy( 
+        &_mipos_disk_drv[ _mipos_disk_drv_cnt-1 ], 
+        drv_ptr, 
+        sizeof(mipos_disk_t) );
+
     mipos_leave_cs();
 
     return 0;

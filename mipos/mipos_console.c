@@ -66,7 +66,8 @@ typedef struct _msg_t
 {
     unsigned char  buffer[RS232_TX_BUF_LEN];
     unsigned int len;
-} msg_t;
+} 
+msg_t;
 
 
 /* -------------------------------------------------------------------------- */
@@ -152,8 +153,6 @@ int mipos_split_command(char * cmd_line,
             argv[arg_count++] = &cmd_line[word_pos];
             
             if (arg_count >= max_args || pos == (cmd_line_len - 1)) {
-                if (pos == (cmd_line_len - 1) && cmd_line[pos] == ' ')
-                    cmd_line[pos] = 0;
                 break;
             }
             cmd_line[pos] = 0;
@@ -180,22 +179,15 @@ static void show_command_list(mipos_console_cmd_t* cmd_list)
 
 /* -------------------------------------------------------------------------- */
 
-static int try_exec_cmd(char * cmd_str,
-    unsigned int cmd_str_len,
+static int try_exec_cmd(
+    int argc, char* argv[],
     mipos_console_cmd_t* cmd_list)
 {
     int index_of_cmd = 0;
-    char* argv[CONSOLE_MAX_ARGS_COUNT] = { 0 };
+        
+    while (cmd_list->cmd_str && cmd_list->cmd_exec) {
 
-    int argc = mipos_split_command(cmd_str,
-        cmd_str_len,
-        argv,
-        sizeof(argv) / sizeof(argv[0]));
-
-    while (cmd_list->cmd_str && cmd_list->cmd_exec)
-    {
-        if (argc > 0 && strcmp(argv[0], cmd_list->cmd_str) == 0)
-        {
+        if (argc > 0 && strcmp(argv[0], cmd_list->cmd_str) == 0) {
             cmd_list->cmd_exec(argc, argv);
             return index_of_cmd;
         }
@@ -235,19 +227,27 @@ int recvr_task(task_param_t context) {
 
                 char* cmd_str = (char*)rs232_rx_buf;
                 unsigned int cmd_len = rs232_rx_buf_idx;
+                char* argv[CONSOLE_MAX_ARGS_COUNT] = { 0 };
+                int argc = 0;
 
-                if (mipos_cmd_list &&
-                    try_exec_cmd(cmd_str, cmd_len,
-                        mipos_cmd_list) >= 0) {
-                }
-                else if (registered_cmd_list &&
-                    try_exec_cmd(cmd_str, cmd_len,
-                        registered_cmd_list) >= 0) {
-                }
-                else if (recv_cbk) {
+                if (recv_cbk) {
                     recv_cbk((unsigned char*)cmd_str, cmd_len);
                 }
 
+                argc = mipos_split_command(cmd_str,
+                    cmd_len,
+                    argv,
+                    sizeof(argv) / sizeof(argv[0]));
+
+                if (mipos_cmd_list &&
+                    try_exec_cmd(argc, argv,
+                        mipos_cmd_list) >= 0) {
+                }
+                else if (registered_cmd_list &&
+                    try_exec_cmd(argc, argv,
+                        registered_cmd_list) >= 0) {
+                }
+                
                 if (console_prompt) {
                     mipos_console_send_null_str(console_prompt);
                 }

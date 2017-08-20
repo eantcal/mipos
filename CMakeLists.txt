@@ -10,7 +10,7 @@ set(CMAKE_C_FLAGS
   -DENABLE_MIPOS_MALLOC \
   -DENABLE_MIPOS_MPOOL")
 
-include_directories(mipos mipos/arch)
+include_directories(mipos mipos/arch fatfs)
 
 add_library( mipos STATIC
   mipos/mipos_console.c 
@@ -48,4 +48,13 @@ target_link_libraries( example-console mipos )
 
 add_executable( example-filesystem examples/filesystem/main.c)
 target_link_libraries( example-filesystem mipos )
+
+add_executable( example-fatfs examples/fatfs/main.c)
+target_link_libraries( example-fatfs mipos fatfs )
+
+add_custom_command(
+        TARGET example-fatfs POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/examples/fatfs/disk.img
+                ${CMAKE_CURRENT_BINARY_DIR}/disk.img)
 

@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="../../mipos/arch/mipos_bsp_simu.c" />
+    <ClCompile Include="../../mipos/mipos_console.c" />
+    <ClCompile Include="../../mipos/mipos_fs.c" />
+    <ClCompile Include="../../mipos/mipos_kernel.c" />
+    <ClCompile Include="../../mipos/mipos_queue.c" />
+    <ClCompile Include="../../mipos/mipos_stdio.c" />
+    <ClCompile Include="../../mipos/mipos_task.c" />
+    <ClCompile Include="../../mipos/mipos_timer.c" />
+    <ClCompile Include="../../mipos/mipos_malloc.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="..\..\fatfs\diskio.c">
+      <Filter>fatfs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\fatfs\ff.c">
+      <Filter>fatfs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\fatfs\ffsystem.c">
+      <Filter>fatfs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\fatfs\ffunicode.c">
+      <Filter>fatfs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\mipos\mipos_diskio.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../../mipos/mipos.h" />
+    <ClInclude Include="../../mipos/mipos_bsp.h" />
+    <ClInclude Include="../../mipos/arch/mipos_bsp_simu.h" />
+    <ClInclude Include="../../mipos/mipos_console.h" />
+    <ClInclude Include="../../mipos/mipos_fs.h" />
+    <ClInclude Include="../../mipos/mipos_kernel.h" />
+    <ClInclude Include="../../mipos/mipos_limits.h" />
+    <ClInclude Include="../../mipos/mipos_mutex.h" />
+    <ClInclude Include="../../mipos/mipos_queue.h" />
+    <ClInclude Include="../../mipos/mipos_stdio.h" />
+    <ClInclude Include="../../mipos/mipos_timer.h" />
+    <ClInclude Include="../../mipos/mipos_types.h" />
+    <ClInclude Include="../../mipos/mipos_malloc.h" />
+    <ClInclude Include="..\..\fatfs\diskio.h">
+      <Filter>fatfs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\fatfs\ff.h">
+      <Filter>fatfs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\fatfs\ffconf.h">
+      <Filter>fatfs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\fatfs\integer.h">
+      <Filter>fatfs</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\mipos\mipos_diskio.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="fatfs">
+      <UniqueIdentifier>{bf20fb2a-fae0-45a8-8a08-c5f4846b828e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

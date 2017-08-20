@@ -40,6 +40,7 @@ typedef unsigned int console_flg_t;
 #define CONSOLE_TX_CRLF  2
 
 #define CONSOLE_MAX_ARGS_COUNT 8
+#define CONSOLE_MAX_CMD_LENGTH 80
 
 
 /* -------------------------------------------------------------------------- */

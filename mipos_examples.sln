@@ -13,6 +13,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "multitask", "examples\multi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "timers", "examples\timers\timers.vcxproj", "{AE21CF1A-552F-4183-98E9-D702E6BEC0E6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F0200745-EB5B-49DD-B295-53E3FB4A515E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fatfs", "examples\fatfs\fatfs.vcxproj", "{21884E2A-2761-4F05-A95D-7E8226B5286A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -39,6 +43,10 @@ Global
 		{AE21CF1A-552F-4183-98E9-D702E6BEC0E6}.Debug|x86.Build.0 = Debug|Win32
 		{AE21CF1A-552F-4183-98E9-D702E6BEC0E6}.Release|x86.ActiveCfg = Release|Win32
 		{AE21CF1A-552F-4183-98E9-D702E6BEC0E6}.Release|x86.Build.0 = Release|Win32
+		{21884E2A-2761-4F05-A95D-7E8226B5286A}.Debug|x86.ActiveCfg = Debug|Win32
+		{21884E2A-2761-4F05-A95D-7E8226B5286A}.Debug|x86.Build.0 = Debug|Win32
+		{21884E2A-2761-4F05-A95D-7E8226B5286A}.Release|x86.ActiveCfg = Release|Win32
+		{21884E2A-2761-4F05-A95D-7E8226B5286A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
