@@ -120,7 +120,7 @@ int ramdisk_read(mipos_pdrv_t pdrv, char *buf, mipos_sec_t sector, mipos_sec_t c
         return MIPOS_DISK_RES_NOTRDY;
     }
 
-    /* Read data from ramdisk array */
+    /* Read data from ramdisk */
     memcpy(buf, (&ramdisk_ptr[sector * SECTOR_SIZE]), count * SECTOR_SIZE);
 
     return MIPOS_DISK_RES_OK;
@@ -146,11 +146,8 @@ int ramdisk_write(mipos_pdrv_t pdrv, const char *buf, mipos_sec_t sector, mipos_
         return MIPOS_DISK_RES_NOTRDY;
     }
 
-    /* Read data from ram disk */
-    memcpy(
-        (uint8_t *)(&ramdisk_ptr[sector * SECTOR_SIZE]), 
-        (uint8_t *)buf, 
-        count * SECTOR_SIZE);
+    /* Write data into ram disk */
+    memcpy( (&ramdisk_ptr[sector * SECTOR_SIZE]), buf, count * SECTOR_SIZE);
 
     return MIPOS_DISK_RES_OK;
 }
@@ -226,7 +223,7 @@ int exec_cmd_ls(int argc, char *argv[])
             (file_info.fattrib & AM_HID) ? 'h' : '-',
             (file_info.fattrib & AM_SYS) ? 's' : '-',
             (file_info.fattrib & AM_ARC) ? 'a' : '-',
-            (unsigned int ) ((file_info.fdate >> 9) + 1980),
+            (unsigned int)((file_info.fdate >> 9) + 1980),
             (unsigned int)((file_info.fdate >> 5) & 15),
             (unsigned int)(file_info.fdate & 31),
             (unsigned int)((file_info.ftime >> 11)),

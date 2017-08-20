@@ -125,7 +125,8 @@ extern unsigned int mipos_get_sp();
          struct timeval tv;\
          static unsigned long long old_tc = 0; \
          gettimeofday(&tv, 0); \
-         unsigned long long tc=((unsigned long long)((tv.tv_sec * 1000ul) + (tv.tv_usec / 1000ul)) ); \
+         unsigned long long tc=((unsigned long long) \
+             ((tv.tv_sec * 1000ul) + (tv.tv_usec / 1000ul)) ); \
          if (old_tc) \
              mipos_update_rtc( (uint32_t) (tc-old_tc) );\
          old_tc = tc; \
@@ -138,10 +139,6 @@ extern unsigned int mipos_get_sp();
 
 #define mipos_save_context(_x) setjmp((unsigned int*)_x)
 #define mipos_context_switch_to(_x) longjmp((unsigned int*)_x,1)
-
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint8_t  u8;
 
 #define CONSOLE_SENDER_STACK (1024*1024)
 #define CONSOLE_RECEIVER_STACK (1024*1024)

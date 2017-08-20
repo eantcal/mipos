@@ -38,7 +38,6 @@ static int idle_task(task_param_t param)
     mipos_enter_cs();
 
     //Keeps trace of the idle state
-    ++KERNEL_ENV.idle_counter;
     notify = KERNEL_ENV.idle_state_notify_cbk;
 
     mipos_leave_cs();
@@ -195,8 +194,8 @@ scheduler:
         int id = 0;
 
         //search for active timers
-        for (; id < MIPOS_MAX_TIMERS_NO; ++id)
-        {
+        for (; id < MIPOS_MAX_TIMERS_NO; ++id) {
+
             mipos_timer_bmp_t tmask = 1 << id;
 
             if (KERNEL_ENV.timer_bitmap & tmask) {
@@ -373,8 +372,7 @@ scheduler:
                     }
                 }
 
-                if (p_task->signal_waiting & SIGTMR)
-                {
+                if (p_task->signal_waiting & SIGTMR) {
                     if (p_task->rtc_timeout &&
                         KERNEL_ENV.rtc_counter >= p_task->rtc_timeout)
                     {
@@ -428,7 +426,7 @@ dispatcher:
 
 
     // Before a task execution, save current scheduler state
-    if (mipos_save_context((u8*)KERNEL_ENV.scheduler_registers_state)) {
+    if (mipos_save_context((uint8_t*)KERNEL_ENV.scheduler_registers_state)) {
         //Resuming kernel context, go to the scheduler
         goto scheduler;
     }
@@ -439,7 +437,7 @@ dispatcher:
         p_task->u_flags.flags.wkup = 0;
 
         // Resume a suspended task
-        mipos_context_switch_to((u8*)p_task->reg_state);
+        mipos_context_switch_to((uint8_t*)p_task->reg_state);
     }
     else {
         mipos_init_cs();

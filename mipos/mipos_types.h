@@ -228,7 +228,6 @@ typedef struct __kernel_t {
 	unsigned long tick_counter;
 
 	//! Idle state reference
-	unsigned long idle_counter;
 	idle_state_notify_cbk_t idle_state_notify_cbk;
 	task_param_t idle_param;
 

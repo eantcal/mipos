@@ -86,16 +86,9 @@ static int _peek_input(void)
     return 0;
 }
 #else
-#include <sys/select.h>
 #include <termios.h>
 #include <stdio.h>
 #include <fcntl.h>
-#if 0
-/* According to earlier standards */
-       #include <sys/time.h>
-       #include <sys/types.h>
-       #include <unistd.h>
-#endif
  
 static int _peek_input(void)
 {
