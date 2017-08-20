@@ -150,6 +150,7 @@ static int _peek_input(void)
 
 void mipos_bsp_rs232_putc(unsigned char c) {
     putc(c, stdout);
+    fflush(stdout);
 }
 
 
