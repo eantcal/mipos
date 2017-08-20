@@ -261,6 +261,56 @@ int exec_cmd_ls(int argc, char *argv[])
 
 /* -------------------------------------------------------------------------- */
 
+static int exec_cmd_cat(int argc, char* argv[])
+{
+    int res = 0;
+    size_t bread = 0;
+    FIL file;
+    char buf[ 64 ] = { 0 };
+
+    if (argc<2) {
+        return -1;
+    }
+
+    int curdir_len = strlen(g_curr_dir); 
+
+    if((curdir_len + strlen(argv[1]) + 1) >= sizeof(g_curr_dir)) {
+        return -1;
+    }
+
+    if(curdir_len<1 || g_curr_dir[curdir_len-1] != '/') {
+        strcat(g_curr_dir, "/");
+    }
+
+    strcat(g_curr_dir, argv[1]);
+
+    res = f_open(&file, g_curr_dir, FA_READ);
+
+    g_curr_dir[curdir_len] = 0;
+
+    if (res != FR_OK) {
+       return -1;
+    }
+
+    do {
+        if (FR_OK != f_read(&file, buf, sizeof(buf)-1, &bread)) {
+            f_close(&file);
+            return -1;
+        }
+
+        buf[bread] = 0;
+        mipos_printf("%s", buf);
+    }
+    while(bread == (sizeof(buf) - 1));
+
+    f_close(&file);
+
+    return 0;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 static int exec_cmd_chdir(int argc, char* argv[])
 {
     int res = 0;
@@ -358,9 +408,10 @@ static int exec_cmd_pwd(int argc, char* argv[])
 
 static
 mipos_console_cmd_t user_cmd_list[] = {
-    { "ls", exec_cmd_ls,      "ls - shows list of files" },
-    { "cd", exec_cmd_chdir,   "cd - changes current directory" },
-    { "pwd", exec_cmd_pwd,    "pwd - show current directory" },
+    { "ls", exec_cmd_ls,      "ls             - shows list of files" },
+    { "cd", exec_cmd_chdir,   "cd <dir>       - changes current directory" },
+    { "pwd", exec_cmd_pwd,    "pwd            - show current directory" },
+    { "cat", exec_cmd_cat,    "cat <filename> - show file content" },
 
     CMD_LIST_END
 };
@@ -394,7 +445,6 @@ int root_task(task_param_t param)
     mipos_console_register_cmd_list(user_cmd_list);
     mipos_console_init(&cinit);
         
-
     // Mount the ramdisk
     if (FR_OK != f_mount(&g_fat_fs, "0:" /*logical drive 0*/, 1 /*mount now*/)) {
         mipos_puts("f_mount failed\n");
