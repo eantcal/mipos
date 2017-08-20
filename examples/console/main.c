@@ -11,14 +11,6 @@
 
 /* --------------------------------------------------------------------------- */
 
-void exec_cmd(char* cmd_str, int cmd_len) {
-    (void)cmd_len;
-    mipos_printf("'%s' not recognized, type help\n", cmd_str);
-}
-
-
-/* --------------------------------------------------------------------------- */
-
 static char root_stack[4 * 1024];
 int root_task(task_param_t param)
 {
@@ -26,7 +18,6 @@ int root_task(task_param_t param)
     cinit.prompt = "\nmipOS>";
     cinit.end_line_char = '\r';
     cinit.flags = CONSOLE_FLG_ECHO | CONSOLE_TX_CRLF;
-    cinit.recv_cbk = exec_cmd; // called on console line input
 
     mipos_console_init(&cinit);
     mipos_t_suspend();

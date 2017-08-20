@@ -17,17 +17,17 @@
 // Simple RAM Disk driver
 
 mipos_fs_t mipos_fs;
-static char ram_disk[mipos_fs_SIZE + mipos_fs_OFFSET + mipos_fs_STORAGE_AREA_SIZE] = { 0 };
+static char ramdisk_ptr[mipos_fs_SIZE + mipos_fs_OFFSET + mipos_fs_STORAGE_AREA_SIZE] = { 0 };
 
 static
 int disk_write(const char* srcbuf, uint32_t bsize, uint32_t doffset) {
-    memcpy(&ram_disk[doffset], srcbuf, bsize);
+    memcpy(&ramdisk_ptr[doffset], srcbuf, bsize);
     return 0;
 }
 
 static
 int disk_read(char* dstbuf, uint32_t bsize, uint32_t soffset) {
-    memcpy(dstbuf, &ram_disk[soffset], bsize);
+    memcpy(dstbuf, &ramdisk_ptr[soffset], bsize);
     return 0;
 }
 
@@ -66,7 +66,7 @@ static int exec_command(int argc, char * argv[])
 
             do {
                 mipos_FILE* f = 0;
-                u32 i = 0;
+                uint32_t i = 0;
 
                 mipos_fs_get_fd(&mipos_fs, file_handle, &fd);
                 f = mipos_fopen(fd.filename, "r");

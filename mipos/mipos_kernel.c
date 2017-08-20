@@ -56,7 +56,7 @@ static int idle_task(task_param_t param)
 
 /* -------------------------------------------------------------------------- */
 
-void mipos_update_rtc(u32 quantum)
+void mipos_update_rtc(uint32_t quantum)
 {
     KERNEL_ENV.rtc_counter += quantum;
     mipos_kick_watchdog();
@@ -176,6 +176,7 @@ void mipos_start(task_entry_point_t root_task,
     //---------
 scheduler:
     //---------
+
     mipos_kick_watchdog();
 
     mipos_bsp_notify_scheduler_epoch();
@@ -334,8 +335,6 @@ scheduler:
         goto scheduler;
     }
 
-    KERNEL_DBG_DELAY;
-
     do
     {
         // tick counter is incremented for each TSM iteration
@@ -424,6 +423,9 @@ scheduler:
     //---------
 dispatcher:
     //---------
+
+    KERNEL_DBG_DELAY;
+
 
     // Before a task execution, save current scheduler state
     if (mipos_save_context((u8*)KERNEL_ENV.scheduler_registers_state)) {

@@ -17,11 +17,13 @@
 
 /* --------------------------------------------------------------------------- */
 
-static char * ram_disk = 0;
-static size_t ram_disk_size = 0;
-#define SECTOR_SIZE 512
-#define DISK_IMAGE_FILENAME "disk.img"
 
+static char * ramdisk_ptr = 0;
+static size_t ramdisk_size = 0;
+#define SECTOR_SIZE 512
+
+// target-simulation ramdisk image data
+static char ramdisk_fname[1024] = "disk.img" /* default name */;
 
 /* --------------------------------------------------------------------------- */
 
@@ -64,7 +66,8 @@ int ramdisk_init(mipos_pdrv_t pdrv) {
         return MIPOS_DISK_RES_NOTRDY;
     }
 
-    FILE * f = fopen(DISK_IMAGE_FILENAME, "rb");
+    // read from host (linux/window) filesystem a ramdisk image
+    FILE * f = fopen(ramdisk_fname, "rb");
 
     if (!f) {
         return MIPOS_DISK_RES_NOTRDY;
@@ -78,11 +81,15 @@ int ramdisk_init(mipos_pdrv_t pdrv) {
         return MIPOS_DISK_RES_NOTRDY;
     }
 
-    ram_disk_size = img_size;
+    ramdisk_size = img_size;
 
-    ram_disk = malloc(img_size);
+    ramdisk_ptr = malloc(img_size);
 
-    if (fread(ram_disk, 1, img_size, f)<1) {
+    if (!ramdisk_ptr) {
+        return MIPOS_DISK_RES_NOTRDY;
+    }
+
+    if (fread(ramdisk_ptr, 1, img_size, f)<1) {
         return MIPOS_DISK_RES_NOTRDY;
     }
 
@@ -114,7 +121,7 @@ int ramdisk_read(mipos_pdrv_t pdrv, char *buf, mipos_sec_t sector, mipos_sec_t c
     }
 
     /* Read data from ramdisk array */
-    memcpy(buf, (&ram_disk[sector * SECTOR_SIZE]), count * SECTOR_SIZE);
+    memcpy(buf, (&ramdisk_ptr[sector * SECTOR_SIZE]), count * SECTOR_SIZE);
 
     return MIPOS_DISK_RES_OK;
 }
@@ -141,7 +148,7 @@ int ramdisk_write(mipos_pdrv_t pdrv, const char *buf, mipos_sec_t sector, mipos_
 
     /* Read data from ram disk */
     memcpy(
-        (uint8_t *)(&ram_disk[sector * SECTOR_SIZE]), 
+        (uint8_t *)(&ramdisk_ptr[sector * SECTOR_SIZE]), 
         (uint8_t *)buf, 
         count * SECTOR_SIZE);
 
@@ -164,7 +171,7 @@ int ramdisk_ioctl(mipos_pdrv_t pdrv, mipos_ioctl_cmd_t cmd, void *buf)
 {
     switch (cmd) {
         case GET_SECTOR_COUNT:	/* Get sector count (u32) */
-            *(uint32_t *)buf = ram_disk_size / SECTOR_SIZE;
+            *(uint32_t *)buf = ramdisk_size / SECTOR_SIZE;
             break;
         case GET_BLOCK_SIZE:	/* Get erase block size in sectors (u32) */
             *(uint32_t *)buf = 32;
@@ -404,8 +411,13 @@ int root_task(task_param_t param)
 
 /* --------------------------------------------------------------------------- */
 
-int main()
+int main(int argc, char * argv[])
 {
+    if (argc > 1 && argv[1]) {
+        // Change default ramdisk image file name
+        strncpy(ramdisk_fname, argv[1], sizeof(ramdisk_fname) - 1);
+    }
+
     mipos_start(root_task, 0, root_stack, sizeof(root_stack));
     return 0;
 }

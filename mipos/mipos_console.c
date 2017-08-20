@@ -89,7 +89,6 @@ void mipos_console_register_cmd_list(mipos_console_cmd_t _cmd_list[])
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef mipos_BSP_SIMU_H__
 unsigned char mipos_console_get_char(void)
 {
     unsigned char key = 0;
@@ -100,8 +99,6 @@ unsigned char mipos_console_get_char(void)
 
     return key;
 }
-#endif
-
 
 
 /* -------------------------------------------------------------------------- */
@@ -642,7 +639,7 @@ int exec_ps_command(int argc, char * argv[])
             sprintf(tx_buf, "%02x ", id);
             mipos_puts(tx_buf);
 
-            sprintf(tx_buf, "%08x ", (u32) p_task->entry_point);
+            sprintf(tx_buf, "%08x ", (uint32_t) p_task->entry_point);
             mipos_puts(tx_buf);
 
             sprintf(tx_buf, "%08x ", p_task->signal_pending);
@@ -679,6 +676,4 @@ int exec_ps_command(int argc, char * argv[])
 
 /* -------------------------------------------------------------------------- */
 
-#else
-#warning macro ENABLE_MIPOS_CONSOLE not defined, console will be not compiled
 #endif // !ENABLE_MIPOS_CONSOLE

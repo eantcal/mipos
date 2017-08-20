@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="mipos_kernel.c" />
+    <ClCompile Include="mipos_console.c" />
+    <ClCompile Include="mipos_diskio.c" />
+    <ClCompile Include="mipos_fs.c" />
+    <ClCompile Include="mipos_malloc.c" />
+    <ClCompile Include="mipos_mpool.c" />
+    <ClCompile Include="mipos_queue.c" />
+    <ClCompile Include="mipos_stdio.c" />
+    <ClCompile Include="mipos_task.c" />
+    <ClCompile Include="mipos_timer.c" />
+    <ClCompile Include="arch\mipos_bsp_simu.c">
+      <Filter>arch</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{f38c5f2e-f59b-4724-8411-09ef1848c550}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="arch">
+      <UniqueIdentifier>{da56db62-4b23-4a52-abc2-2f6f84e532b4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="mipos.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_bsp.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_console.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_diskio.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_fs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_kernel.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_limits.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_malloc.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_mpool.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_mutex.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_queue.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_types.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_timer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="mipos_stdio.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="arch\mipos_bsp_simu.h">
+      <Filter>arch</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

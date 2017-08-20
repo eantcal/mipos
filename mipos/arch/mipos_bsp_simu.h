@@ -38,15 +38,10 @@
 
 /* Used only for debugging purpose on 
    Windows and Linux platforms */
-#ifndef KERNEL_TICK_DBG_IDLE_TIME_MS
-#  define KERNEL_TICK_DBG_IDLE_TIME_MS 0
-#endif
-
 #if (defined(_MSC_VER) || defined(__BORLANDC__))
 # if (defined(_WIN32))
 #   include <windows.h>
-#   define KERNEL_DBG_DELAY Sleep(KERNEL_TICK_DBG_IDLE_TIME_MS)
-#   define simu_msleep(_MS) Sleep(_MS)
+#   define KERNEL_DBG_DELAY Sleep(1)
 # endif
 # pragma check_stack(off)
 # pragma optimize( "agpswy", on)
@@ -54,13 +49,7 @@
 #else //  LINUX
 
 #   include <unistd.h>
-#   define KERNEL_DBG_DELAY usleep((KERNEL_TICK_DBG_IDLE_TIME_MS) * 100)
-#   define simu_msleep(_MS) usleep((_MS)*1000)
-#endif
-
-#ifndef _DEBUG
-# undef KERNEL_DBG_DELAY 
-# define KERNEL_DBG_DELAY 
+#   define KERNEL_DBG_DELAY usleep(100)
 #endif
 
 //Specific section for INTEL x86 supporting Borland C++, 
@@ -125,7 +114,7 @@ extern unsigned int mipos_get_sp();
          static unsigned long long old_tc = 0; \
          unsigned long long tc = GetTickCount64(); \
          if (old_tc) \
-            mipos_update_rtc( (unsigned long long) (tc-old_tc) );\
+            mipos_update_rtc( (uint32_t) (tc-old_tc) );\
          old_tc = tc; \
      \
      } while (0)
@@ -138,7 +127,7 @@ extern unsigned int mipos_get_sp();
          gettimeofday(&tv, 0); \
          unsigned long long tc=((unsigned long long)((tv.tv_sec * 1000ul) + (tv.tv_usec / 1000ul)) ); \
          if (old_tc) \
-             mipos_update_rtc( (unsigned long long) (tc-old_tc) );\
+             mipos_update_rtc( (uint32_t) (tc-old_tc) );\
          old_tc = tc; \
   } while (0)
 #endif

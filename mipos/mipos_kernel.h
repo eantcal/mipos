@@ -53,7 +53,7 @@
  *
  *  Apply to: ISR
  */
-void mipos_update_rtc(u32 quantum);
+void mipos_update_rtc(uint32_t quantum);
 
 
 /* -------------------------------------------------------------------------- */
@@ -416,7 +416,7 @@ do {\
       KERNEL_ENV.task_context_ptr->process_stack_pointer = \
       (mipos_reg_t) mipos_get_sp();\
       _mipos_t_set_wait_for_signal(_SIGNUM);\
-      KERNEL_ENV.task_context_ptr->timer_tick_count=(u32)(_COUNT);\
+      KERNEL_ENV.task_context_ptr->timer_tick_count=(uint32_t)(_COUNT);\
       mipos_context_switch_to(KERNEL_ENV.scheduler_registers_state);\
   }\
 } while(0)
@@ -435,7 +435,7 @@ do {\
         _mipos_t_set_wait_for_signal(_SIGNUM);\
         mipos_enter_cs();\
         KERNEL_ENV.task_context_ptr->rtc_timeout=\
-            KERNEL_ENV.rtc_counter + (u32)(_COUNT);\
+            KERNEL_ENV.rtc_counter + (uint32_t)(_COUNT);\
         mipos_leave_cs();\
         KERNEL_ENV.task_context_ptr->process_stack_pointer = \
         (mipos_reg_t) mipos_get_sp();\

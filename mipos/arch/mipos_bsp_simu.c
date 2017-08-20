@@ -77,66 +77,73 @@ unsigned int mipos_get_sp() {
 
 #if _WIN32 || _WIN64
 #include <conio.h>
+static int _peek_input(void)
+{
+    if (_kbhit()) {
+        return _getch();
+    }
+
+    return 0;
+}
 #else
 #include <sys/select.h>
 #include <termios.h>
 #include <stdio.h>
 #include <fcntl.h>
+#if 0
+/* According to earlier standards */
+       #include <sys/time.h>
+       #include <sys/types.h>
+       #include <unistd.h>
+#endif
  
-static int _kbhit(void)
+static int _peek_input(void)
 {
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
+    static int termios_cnf = 0;
+    static struct termios oldt, newt = {0};
+    int ch = 0, oldf =0;
 
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+    if (!termios_cnf) {
+        termios_cnf = 1;
 
-    ch = getchar();
+        oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+        tcgetattr(STDIN_FILENO, &oldt);
+        memcpy(&newt, &oldt, sizeof(struct termios));
+
+        newt.c_lflag &= ~(ICANON | ECHO);
+
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    }
+
+    ch = getchar();  
+
+    if (ch == EOF) {
+       return 0;
+    }
+
+    switch (ch) {
+        case 0xA:
+          return 0xD;
+        case 0x7f:
+        case 0x27:
+          return '\b';
+        case 3: // CTRL+C
+            tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+            fcntl(STDIN_FILENO, F_SETFL, oldf);
+            exit(0);
+            return 0;
+    }
 
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     fcntl(STDIN_FILENO, F_SETFL, oldf);
-
-    if(ch != EOF) {
-        ungetc(ch, stdin);
-        return 1;
-    }
-}
-
-static int _getch(void) {
-    int ch = getchar();
-
-    switch (ch) {
-       case 0xA:
-          return 0xD;
-       case 0x7f:
-          return '\b';
-    }
+    termios_cnf = 0;
 
     return ch;
 }
 
 #endif
-
-
-/* --------------------------------------------------------------------------- */
-
-unsigned char mipos_console_get_char(void)
-{
-    fflush(stdout);
-
-    while (!_kbhit()) {
-        mipos_tm_wkafter(0);
-    }
-
-    char ch = _getch();
-
-    return ch;
-}
 
 
 /* --------------------------------------------------------------------------- */
@@ -155,6 +162,13 @@ void mipos_bsp_configure_rs232(unsigned int baud_rate) {
 /* --------------------------------------------------------------------------- */
 
 unsigned int mipos_bsp_rs232_recv_byte(unsigned char *key) {
+    char ch = _peek_input();
+
+    if (ch) {
+        *key = ch;
+        return 1;
+    }
+
     return 0;
 }
 
