@@ -15,17 +15,17 @@ OBJS = \
    $(MIPOSDIR)/mipos_kernel.rel \
    $(MIPOSDIR)/mipos_task.rel \
    $(MIPOSARCH)/$(MCUFAM)/mipos_bsp_$(MCUFAM)s.rel \
-   $(MIPOSARCH)/$(MCUFAM)/stm8s-sdcc/src/stm8s_tim4.rel \
-   $(MIPOSARCH)/$(MCUFAM)/stm8s-sdcc/src/stm8s_clk.rel \
-   $(MIPOSARCH)/$(MCUFAM)/stm8s-sdcc/src/stm8s_rst.rel \
-   $(MIPOSARCH)/$(MCUFAM)/stm8s-sdcc/src/stm8s_iwdg.rel
+   $(MIPOSARCH)/$(MCUFAM)/stm8s_lib/src/stm8s_tim4.rel \
+   $(MIPOSARCH)/$(MCUFAM)/stm8s_lib/src/stm8s_clk.rel \
+   $(MIPOSARCH)/$(MCUFAM)/stm8s_lib/src/stm8s_rst.rel \
+   $(MIPOSARCH)/$(MCUFAM)/stm8s_lib/src/stm8s_iwdg.rel
    
 
 ifeq ($(DEBUG),y)
 CFLAGS += -DDEBUG
 endif
 
-INCLUDES += -I$(MIPOSARCH)/$(MCUFAM)/stm8s-sdcc/inc -I$(MIPOSDIR) -I$(MIPOSARCH)/$(MCUFAM)
+INCLUDES += -I$(MIPOSARCH)/$(MCUFAM)/stm8s_lib/inc -I$(MIPOSDIR) -I$(MIPOSARCH)/$(MCUFAM)
 CFLAGS += -m$(MCUFAM) -c $(INCLUDES) -DMIPOS_TARGET_STM8 -D$(MCUMODEL)
 LDFLAGS += -m$(MCUFAM) --out-fmt-ihx -lstm8
 
