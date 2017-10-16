@@ -58,7 +58,30 @@ int mipos_bsp_check_reset_type( void );
 
 /* -------------------------------------------------------------------------- */
 
-#else //Cosmic
+// Small Device C Compiler
+#elif defined(SDCC)
+
+#define mipos_set_sp(__N_SP) __asm \
+  LDW X, _ ## __N_SP + 0  \
+  LDW SP,X        \
+__endasm ;
+
+#define mipos_replace_sp(__OLD_SP, __N_SP) __asm \
+  LDW X, SP       \
+  LDW _## __OLD_SP + 0, X \
+  LDW X, _ ## __N_SP + 0   \
+  LDW SP,X        \
+__endasm ;
+
+//#define mipos_get_sp() __asm LDW X,SP __endasm ;
+
+extern void * mipos_get_sp();
+
+#define mipos_init_cs()
+#define mipos_enter_cs() sim()
+#define mipos_leave_cs() rim()
+
+#else //Cosmic // -------------------------------------------------------------
 
 #define mipos_set_sp(__N_SP) _asm("LDW SP,X\n", __N_SP)
 #define mipos_replace_sp(__OLD_SP, __N_SP) do {\

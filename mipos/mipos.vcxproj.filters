@@ -11,7 +11,7 @@
     <ClCompile Include="mipos_stdio.c" />
     <ClCompile Include="mipos_task.c" />
     <ClCompile Include="mipos_timer.c" />
-    <ClCompile Include="arch\mipos_bsp_simu.c">
+    <ClCompile Include="arch\simu\mipos_bsp_simu.c">
       <Filter>arch</Filter>
     </ClCompile>
   </ItemGroup>
@@ -66,7 +66,7 @@
     <ClInclude Include="mipos_stdio.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="arch\mipos_bsp_simu.h">
+    <ClInclude Include="arch\simu\mipos_bsp_simu.h">
       <Filter>arch</Filter>
     </ClInclude>
   </ItemGroup>

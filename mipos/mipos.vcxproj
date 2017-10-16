@@ -60,7 +60,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>.;arch</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;arch/simu</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -74,7 +74,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>.;arch</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;arch/simu</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -84,7 +84,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="arch\mipos_bsp_simu.c" />
+    <ClCompile Include="arch\simu\mipos_bsp_simu.c" />
     <ClCompile Include="mipos_console.c" />
     <ClCompile Include="mipos_diskio.c" />
     <ClCompile Include="mipos_fs.c" />
@@ -97,7 +97,7 @@
     <ClCompile Include="mipos_timer.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="arch\mipos_bsp_simu.h" />
+    <ClInclude Include="arch\simu\mipos_bsp_simu.h" />
     <ClInclude Include="mipos.h" />
     <ClInclude Include="mipos_bsp.h" />
     <ClInclude Include="mipos_console.h" />

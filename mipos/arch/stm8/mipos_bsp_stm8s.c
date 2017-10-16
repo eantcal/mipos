@@ -18,17 +18,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-static int boot_timeout = 30;  /* 3000 ms */
-static int boot_timeout_l = 100;
-
-char system_booting(void)
-{
-    return (boot_timeout != 0);
-}
-
-
-/* -------------------------------------------------------------------------- */
-
 int mipos_bsp_check_reset_type(void)
 {
 
@@ -74,8 +63,6 @@ void mipos_bsp_setup_reset_and_wd(void)
 #endif // ENABLE_WATCHDOG
 }
 
-extern int g_simple_tick_cnt;
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -86,27 +73,15 @@ extern int g_simple_tick_cnt;
   * @retval
   * None
   */
-#ifdef _COSMIC_
+#ifdef SDCC
+INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
+#elif defined( _COSMIC_ )
 @far @interrupt void TIM4_UPD_OVF_IRQHandler(void)
 #else /* _RAISONANCE_ */
 void TIM4_UPD_OVF_IRQHandler(void) interrupt 23
 #endif
 {
-    if (boot_timeout) {
-        if (boot_timeout_l) {
-            --boot_timeout_l;
-            if (boot_timeout_l == 0) {
-                --boot_timeout;
-
-                if (boot_timeout) {
-                    boot_timeout_l = 100;
-                }
-            }
-        }
-    }
-
     mipos_update_rtc(1 /*ms*/);
-    ++g_simple_tick_cnt;
     TIM4_ClearITPendingBit(TIM4_IT_UPDATE);
 }
 
@@ -133,3 +108,15 @@ void mipos_bsp_create_hw_rtc_timer(void)
     TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
     TIM4_Cmd(ENABLE);
 }
+
+
+/* -------------------------------------------------------------------------- */
+
+#ifdef SDCC
+void * mipos_get_sp()
+{
+   __asm
+   LDW X,SP
+   __endasm ;
+}
+#endif

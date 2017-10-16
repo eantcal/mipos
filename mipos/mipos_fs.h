@@ -125,6 +125,8 @@ typedef struct _mipos_fs_fd_t {
 } mipos_fs_fd_t;
 
 
+/* -------------------------------------------------------------------------- */
+
 //! File status descriptor
 typedef struct _mipos_fs_ctl_t {
     uint32_t seek_pointer;
@@ -154,7 +156,8 @@ typedef struct _mipos_fs_ftbl_t {
 
 /* -------------------------------------------------------------------------- */
 
-#define mipos_fs_SIZE (((sizeof(mipos_fs_ftbl_t)/(mipos_fs_CLUSTER_SIZE))+1)*mipos_fs_CLUSTER_SIZE * 2)
+#define mipos_fs_SIZE \
+   (((sizeof(mipos_fs_ftbl_t)/(mipos_fs_CLUSTER_SIZE))+1)*mipos_fs_CLUSTER_SIZE * 2)
 
 
 /* -------------------------------------------------------------------------- */
