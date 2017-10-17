@@ -62,15 +62,15 @@ int mipos_bsp_check_reset_type( void );
 #elif defined(SDCC)
 
 #define mipos_set_sp(__N_SP) __asm \
-  LDW X, _ ## __N_SP + 0  \
-  LDW SP,X        \
+  LDW X, _ ## __N_SP + 0     \
+  LDW SP, X                  \
 __endasm ;
 
 #define mipos_replace_sp(__OLD_SP, __N_SP) __asm \
-  LDW X, SP       \
-  LDW _## __OLD_SP + 0, X \
-  LDW X, _ ## __N_SP + 0   \
-  LDW SP,X        \
+  LDW X, SP                  \
+  LDW _## __OLD_SP + 0, X    \
+  LDW X, _ ## __N_SP + 0     \
+  LDW SP,X                   \
 __endasm ;
 
 extern void * mipos_get_sp();
