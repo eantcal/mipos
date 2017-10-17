@@ -94,8 +94,8 @@ void mipos_bsp_create_hw_rtc_timer(void)
 
     /* TimerTick = 1 ms
        Warning: fcpu must be equal to 16MHz
-       fck_cnt = fck_psc/presc = fcpu/128 = 125kHz --> 1 tick every 8 µs
-       ==> 1 ms / 8 µs = 125 ticks
+       fck_cnt = fck_psc/presc = fcpu/128 = 125kHz --> 1 tick every 8 Âµs
+       ==> 1 ms / 8 Âµs = 125 ticks
      */
 
 #ifndef SLOWMODE
@@ -117,6 +117,7 @@ void * mipos_get_sp()
 {
    __asm
    LDW X,SP
+   ADW X, #2
    __endasm ;
 }
 #endif
