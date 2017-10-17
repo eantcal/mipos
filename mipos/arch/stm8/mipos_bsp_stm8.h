@@ -73,8 +73,6 @@ __endasm ;
   LDW SP,X        \
 __endasm ;
 
-//#define mipos_get_sp() __asm LDW X,SP __endasm ;
-
 extern void * mipos_get_sp();
 
 #define mipos_init_cs()
