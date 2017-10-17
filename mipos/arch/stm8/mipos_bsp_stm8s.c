@@ -117,7 +117,7 @@ void * mipos_get_sp()
 {
    __asm
    LDW X,SP
-   ADW X, #2
+   ADDW X, #2
    __endasm ;
 }
 #endif
