@@ -15,7 +15,7 @@
     <ProjectGuid>{21884E2A-2761-4F05-A95D-7E8226B5286A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>fatfs</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>fatfsdemo</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
