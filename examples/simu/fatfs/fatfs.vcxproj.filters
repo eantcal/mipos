@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.c" />
+    <ClCompile Include="..\..\..\fatfs\diskio.c" />
+    <ClCompile Include="..\..\..\fatfs\ff.c" />
+    <ClCompile Include="..\..\..\fatfs\ffsystem.c" />
+    <ClCompile Include="..\..\..\fatfs\ffunicode.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\fatfs\diskio.h" />
+    <ClInclude Include="..\..\..\fatfs\ff.h" />
+    <ClInclude Include="..\..\..\fatfs\ffconf.h" />
+    <ClInclude Include="..\..\..\fatfs\integer.h" />
+  </ItemGroup>
+</Project>
