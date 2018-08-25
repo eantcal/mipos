@@ -73,7 +73,7 @@ void mipos_bsp_setup_reset_and_wd(void)
   * @retval
   * None
   */
-#ifdef SDCC
+#ifdef __SDCC
 INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
 #elif defined( _COSMIC_ )
 @far @interrupt void TIM4_UPD_OVF_IRQHandler(void)
@@ -112,7 +112,7 @@ void mipos_bsp_create_hw_rtc_timer(void)
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef SDCC
+#ifdef __SDCC
 void * mipos_get_sp()
 {
    __asm

@@ -59,7 +59,7 @@ int mipos_bsp_check_reset_type( void );
 /* -------------------------------------------------------------------------- */
 
 // Small Device C Compiler
-#elif defined(SDCC)
+#elif defined(__SDCC)
 
 #define mipos_set_sp(__N_SP) __asm \
   LDW X, _ ## __N_SP + 0     \
