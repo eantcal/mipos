@@ -26,9 +26,16 @@ void assert_failed(unsigned char* file, unsigned long line)
 /* -------------------------------------------------------------------------- */
 
 /* TODO: implement putchar required by vprintf */ 
+
+#if defined(__SDCC) && __SDCC_REVISION < 9624 // Old SDCC weirdness
 void putchar(char c) {
     (void) c;
 }
+#else // Standard C
+int putchar(int c) {
+    return (c);
+}
+#endif
 
 
 /* --------------------------------------------------------------------------- */
