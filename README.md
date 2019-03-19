@@ -6,7 +6,7 @@ System-On-Chip (SoC) programmers can choose mipOS for its small, fast and royalt
 mipOS manages tasks, providing mutual exclusion, signals, message queues, memory management, malloc, memory pools, timers.
 Optional modules include: command line support, file system and stdio support.
 
-![mipOS Architecture](http://www.eantcal.eu/_/rsrc/1544810838838/archive/mipos/miposarc.png)
+![mipOS Architecture](https://lh3.googleusercontent.com/IBxSlE4YOrsEsizRFmqsymI4WzpQUiTaztYmsWKYlsHbFHaq2WbnHihiMqy5d1xuKhTRPg)
 
 mipOS is designed to be as compact as possible for the target architecture. Its small footprint enables use in devices with limited memory capacity, including on-chip in SoC implementations, and that reduces power demands, extending battery life.
 
@@ -25,8 +25,8 @@ The original design and the source code was published in an article for the maga
 
 mipOS has been tested on Intel x86 chip, STMicroelectronics® ST7 microcontrollers, STM8 microcontroller and STM32 32bit, ARM-Cortex M3 microcontroller families.
 
-![mipOS running in a evaluation board](http://www.eantcal.eu/_/rsrc/1544810838838/archive/mipos/mipos2.jpg)
+![mipOS running in a evaluation board](https://lh6.googleusercontent.com/q3Bpyvw5OSBRP_P0IvHAU-6LVmuc0Fk54TPIW9FOt5JE_6kdYCsZct_bXIU0nZ7_0Ji0aQ)
 
 See also: [http://www.eantcal.eu/home/c/mipos](http://www.eantcal.eu/home/c/mipos).
 
-![mipOS running in a evaluation board](http://www.eantcal.eu/_/rsrc/1434877676414/archive/mipos/mipos1.jpg)
+![mipOS running in a evaluation board](https://lh4.googleusercontent.com/h8zfHlHJu3VINjZoJuvGUQAp8eZoufDAy4pqYX6A27mL2gpWvYYqL_8V2us4ExaDqYiGkg)
