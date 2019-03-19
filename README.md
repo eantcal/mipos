@@ -1,4 +1,4 @@
-![mipOS Logo](https://github.com/eantcal/mipos/blob/master/mipos_pictures/mipos.png)
+![mipOS Logo](mipos_pictures/mipos.png)
 
 Multum In Parvo Operating System is a cooperative multitasking RTOS designed for single-chip micro-controllers with severely limited RAM (e.g. less than 256 bytes) and ROM. It provides the flexibility of an RTOS in low-cost embedded designs.
 System-On-Chip (SoC) programmers can choose mipOS for its small, fast and royalty-free benefits.
@@ -6,7 +6,7 @@ System-On-Chip (SoC) programmers can choose mipOS for its small, fast and royalt
 mipOS manages tasks, providing mutual exclusion, signals, message queues, memory management, malloc, memory pools, timers.
 Optional modules include: command line support, file system and stdio support.
 
-![mipOS Architecture](https://github.com/eantcal/mipos/blob/master/mipos_pictures/miposarc.png)
+![mipOS Architecture](mipos_pictures/miposarc.png)
 
 mipOS is designed to be as compact as possible for the target architecture. Its small footprint enables use in devices with limited memory capacity, including on-chip in SoC implementations, and that reduces power demands, extending battery life.
 
@@ -25,8 +25,8 @@ The original design and the source code was published in an article for the maga
 
 mipOS has been tested on Intel x86 chip, STMicroelectronics® ST7 microcontrollers, STM8 microcontroller and STM32 32bit, ARM-Cortex M3 microcontroller families.
 
-![mipOS running in a evaluation board](https://github.com/eantcal/mipos/blob/master/mipos_pictures/mipos2.jpg)
+![mipOS running in a evaluation board](mipos_pictures/mipos2.jpg)
 
 See also: [http://www.eantcal.eu/home/c/mipos](http://www.eantcal.eu/mipos).
 
-![mipOS running in a evaluation board](https://github.com/eantcal/mipos/blob/master/mipos_pictures/miposIDE.jpg)
+![mipOS running in a evaluation board](mipos_pictures/miposIDE.jpg)
