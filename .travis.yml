@@ -7,6 +7,11 @@ env:
     # Global build options and C++ flags
     - CXX_FLAGS="-Wall -pedantic -Werror -Wno-variadic-macros -Wno-long-long -Wno-shadow"
    
+addons:
+  apt:
+    packages:
+      - kernel-package libc6-dev-i386
+      
 matrix:
   include:
     - os: linux
