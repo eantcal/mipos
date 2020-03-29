@@ -14,6 +14,7 @@
 
 /* --------------------------------------------------------------------------- */
 
+/* Reserve 16 KB for root task */
 static char root_stack [16 * 1024] = { 0 };
 
 
@@ -41,7 +42,7 @@ int root_task(task_param_t param)
         0 /*ctx*/, 
         1 /*periodic*/ );
 
-    mipos_tm_msleep( 10 * 1000 /*seconds*/ );
+    mipos_tm_msleep( 10 * 1000 /*10 seconds*/ );
     mipos_timer_cancel( timer );
 
     
