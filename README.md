@@ -18,9 +18,62 @@ mipOS is free for any use.
 
 It is also royalty-free, ideal for applications with high-volume production needs.
 
+mipOS can be executed on Windows™ or Linux user-space process for simulation purposes (both Microsoft® Visual Studio™ and GCC compilers are supported).
 mipOS is delivered in fully documented source code form. 
 
-mipOS can be executed on Windows™ or Linux user-space process for simulation purposes (both Microsoft® Visual Studio™ and GCC compilers are supported).
+To build the examples on Linux (target: ``simu``) you might do the following steps:
+- Make sure you have installed gcc multilib (on Ubuntu you can install it by using ``sudo apt-get install gcc-multilib``)
+- Go to mipos/examples directory
+- Create a new directory (e.g. ``md build``)
+- Enter new directory (e.g. ``cd build``)
+- Run ``cmake .. && make``
+
+In ``build`` will be created several binaries. 
+For example, runnning ``./example-filesystem``, will be loaded mipos within a linux process, it will mount a disk image containing two files.
+
+The following is an example of the output of some commands typed on mipos_cli to list and read one file of disk image.
+
+```
+~/repos/mipos/examples/build$ ./example-filesystem 
+
+mipOS v.1.99 - (c) 2005-2017 antonino.calderone@gmail.com console
+Compile date/time: Dec 27 2020 00:33:50 - opt. mods:
+  mipos_console
+  mipos_fs
+  mipos_stdio
+  mipos_mm
+  mipos_malloc
+  mipos_mpool
+
+mipOS>help
+	help - shows this list
+	ver - shows mipOS version
+	dump [<a>,[<c>,[<b>]] - dump a memory area
+	patch <a> <b> - set a byte <b> at address <a>
+	ps - shows the list of tasks
+	freeze <tid> - freezes a task
+	unfreeze <tid> - unfreezes a task
+	delete <tid> - delete a task
+	signal <tid> <signum> - set a signal
+	ls - shows list of files
+	cat - shows list and content of files
+
+mipOS>ls
+Volume label RAMDISK
+test1       60 bytes
+test2       60 bytes
+
+mipOS>cat test1
+Volume label RAMDISK
+test1       60 bytes
+0123456789abcdefghijklmnopqrstuvwxyz0123ABCDEFGHIJKLMNOPQRST
+test2       60 bytes
+9876543210ABCDEFGHIJKLMNOPQRSTUVWXYZ0123abcdefghijklmnopqrst
+
+mipOS>
+
+```
+
 
 The original design and the source code was published in an article for the magazine Computer Programming where the internals of a portable and scalable kernel for microcontrollers with severely limited resource are described.
 
