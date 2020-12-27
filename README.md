@@ -28,10 +28,8 @@ To build the examples on Linux (target: ``simu``) you might do the following ste
 - Enter new directory (e.g. ``cd build``)
 - Run ``cmake .. && make``
 
-In ``build`` will be created several binaries. 
-For example, runnning ``./example-filesystem``, will be loaded mipos within a linux process, it will mount a disk image containing two files.
-
-The following is an example of the output of some commands typed on mipos_cli to list and read one file of disk image.
+In ``build`` several binaries will be created with prefix ``example-``. 
+For example, if you run ``./example-filesystem``, will be loaded mipos within a linux process, it will mount a disk image containing two files, as shown in the following demo:
 
 ```
 ~/repos/mipos/examples/build$ ./example-filesystem 
@@ -73,7 +71,6 @@ test2       60 bytes
 mipOS>
 
 ```
-
 
 The original design and the source code was published in an article for the magazine Computer Programming where the internals of a portable and scalable kernel for microcontrollers with severely limited resource are described.
 
