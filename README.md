@@ -18,6 +18,17 @@ mipOS is free for any use.
 
 It is also royalty-free, ideal for applications with high-volume production needs.
 
+
+The original design and the source code was published in an article for the magazine Computer Programming where the internals of a portable and scalable kernel for microcontrollers with severely limited resource are described.
+
+mipOS has been tested on Intel x86 chip, STMicroelectronics® ST7 microcontrollers, STM8 microcontroller and STM32 32bit, ARM-Cortex M3 microcontroller families.
+
+![mipOS running in a evaluation board](mipos_pictures/mipos2.jpg)
+
+See also: [https://www.eantcal.eu/home/mipos](https://www.eantcal.eu/home/mipos).
+
+![mipOS running in a evaluation board](mipos_pictures/miposIDE.jpg)
+
 mipOS can be executed on Windows™ or Linux user-space process for simulation purposes (both Microsoft® Visual Studio™ and GCC compilers are supported).
 mipOS is delivered in fully documented source code form. 
 
@@ -72,12 +83,3 @@ mipOS>
 
 ```
 
-The original design and the source code was published in an article for the magazine Computer Programming where the internals of a portable and scalable kernel for microcontrollers with severely limited resource are described.
-
-mipOS has been tested on Intel x86 chip, STMicroelectronics® ST7 microcontrollers, STM8 microcontroller and STM32 32bit, ARM-Cortex M3 microcontroller families.
-
-![mipOS running in a evaluation board](mipos_pictures/mipos2.jpg)
-
-See also: [http://www.eantcal.eu/mipos](http://www.eantcal.eu/mipos).
-
-![mipOS running in a evaluation board](mipos_pictures/miposIDE.jpg)
