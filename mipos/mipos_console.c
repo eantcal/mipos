@@ -130,32 +130,65 @@ void mipos_puts(const char * buf)
 
 /* -------------------------------------------------------------------------- */
 
-int mipos_split_command(char * cmd_line,
+static int _word_sep(char ch)
+{
+    return ch == ' ' ||
+        ch == '\t' ||
+        ch == '\r' ||
+        ch == '\n';
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+static int _word_boundary(char* s, int len, int * word_len)
+{
+    int pos = 0;
+    *word_len = 0;
+    while (_word_sep(*s)) {
+        *s = '\0';
+        ++s;
+        ++pos;
+        if (pos >= len) {
+            return -1;
+        }
+    }
+
+    while (*s && !_word_sep(*s))
+    {
+        ++(*word_len);
+        ++s;
+    }
+
+    return pos;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+int mipos_split_command(char* cmd_line,
     int cmd_line_len,
     char* argv[],
     int max_args)
 {
     int arg_count = 0;
     int pos = 0;
-    int word_pos = 0;
+    int word_len = 0;
 
-    for (pos = 0; pos < cmd_line_len; ++pos) {
-        if (cmd_line[pos] == ' ' ||
-            cmd_line[pos] == '\t' ||
-            cmd_line[pos] == '\r' ||
-            cmd_line[pos] == '\n' ||
-            (pos == (cmd_line_len - 1))
-            )
-        {
-            argv[arg_count++] = &cmd_line[word_pos];
-            
-            if (arg_count >= max_args || pos == (cmd_line_len - 1)) {
-                break;
-            }
-            cmd_line[pos] = 0;
-            word_pos = pos + 1;
+    do {
+        int word_pos = _word_boundary(cmd_line, cmd_line_len, &word_len);
+
+        if (word_pos < 0) {
+            return arg_count;
         }
-    }
+
+        argv[arg_count++] = &cmd_line[word_pos];
+        pos += word_pos + word_len;
+
+        cmd_line = &cmd_line[pos];
+        cmd_line_len -= pos;
+    } 
+    while (cmd_line_len > 0);
 
     return arg_count;
 }
