@@ -1,22 +1,22 @@
 /*
-* This file is part of mipOS
-* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-* All rights reserved.
-* Licensed under the MIT License.
-* See COPYING file in the project root for full license information.
-*/
+ * This file is part of mipOS
+ * Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+ * All rights reserved.
+ * Licensed under the MIT License.
+ * See COPYING file in the project root for full license information.
+ */
 
 
- /* ------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 #include "mipos_kernel.h"
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
-void mipos_q_init(mipos_queue_t * queue,
-    mipos_q_item_t * queue_pool,
-    mipos_q_size_t queue_pool_length)
+void mipos_q_init(mipos_queue_t* queue,
+                  mipos_q_item_t* queue_pool,
+                  mipos_q_size_t queue_pool_length)
 {
     mipos_init_cs();
 
@@ -35,9 +35,9 @@ void mipos_q_init(mipos_queue_t * queue,
 }
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
-mipos_q_size_t mipos_q_send(mipos_queue_t * queue, mipos_q_item_t item)
+mipos_q_size_t mipos_q_send(mipos_queue_t* queue, mipos_q_item_t item)
 {
     mipos_q_size_t ret_count = 0;
     mipos_init_cs();
@@ -60,8 +60,7 @@ mipos_q_size_t mipos_q_send(mipos_queue_t * queue, mipos_q_item_t item)
         mipos_leave_cs();
 
         return ret_count;
-    }
-    else {
+    } else {
         if (queue->suspended_tid) {
             mipos_t_notify_signal(queue->suspended_tid, SIGQUE);
         }
@@ -72,16 +71,18 @@ mipos_q_size_t mipos_q_send(mipos_queue_t * queue, mipos_q_item_t item)
 }
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
-mipos_q_size_t mipos_q_receive(mipos_queue_t * queue, mipos_q_item_t * p_item, bool_t bl)
+mipos_q_size_t mipos_q_receive(mipos_queue_t* queue,
+                               mipos_q_item_t* p_item,
+                               bool_t bl)
 {
     if (!p_item) {
         return (mipos_q_size_t)-1;
     }
 
-    if (queue->queue_count == 0 && queue->suspended_tid == 0)  {
-        queue->suspended_tid = KERNEL_ENV.current_task;
+    if (queue->queue_count == 0 && queue->suspended_tid == 0) {
+        queue->suspended_tid = mipos_kernel_env.current_task;
 
         if (bl) {
             _mipos_t_suspend(SIGQUE);
@@ -104,9 +105,9 @@ mipos_q_size_t mipos_q_receive(mipos_queue_t * queue, mipos_q_item_t * p_item, b
 }
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
-mipos_q_size_t mipos_q_count(mipos_queue_t * queue)
+mipos_q_size_t mipos_q_count(const mipos_queue_t* queue)
 {
     mipos_q_size_t ret_count = 0;
     mipos_init_cs();
@@ -121,9 +122,9 @@ mipos_q_size_t mipos_q_count(mipos_queue_t * queue)
 }
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
-int mipos_q_message_pending(mipos_queue_t * queue)
+int mipos_q_message_pending(const mipos_queue_t* queue)
 {
     int ret = 0;
     mipos_init_cs();
@@ -138,4 +139,4 @@ int mipos_q_message_pending(mipos_queue_t * queue)
 }
 
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */

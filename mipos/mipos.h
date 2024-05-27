@@ -1,12 +1,12 @@
 /*
-* This file is part of mipOS
-* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-* All rights reserved.
-* Licensed under the MIT License.
-* See COPYING file in the project root for full license information.
-*/
+ * This file is part of mipOS
+ * Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+ * All rights reserved.
+ * Licensed under the MIT License.
+ * See COPYING file in the project root for full license information.
+ */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 #ifndef __MIPOS_H__
 #define __MIPOS_H__
@@ -18,7 +18,7 @@
 #endif
 
 #if defined(ENABLE_MIPOS_FS) || defined(ENABLE_MIPOS_STDIO)
-#include "mipos_fs.h"
+#include "mipos_tfs.h"
 #endif
 
 #ifdef ENABLE_MIPOS_STDIO
@@ -33,8 +33,6 @@
 #include "mipos_mpool.h"
 #endif
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-#endif //!__KERNEL_H__
-
+#endif //!__MIPOS_H

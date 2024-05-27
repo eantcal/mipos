@@ -1,10 +1,10 @@
 /*
-* This file is part of mipOS
-* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-* All rights reserved.
-* Licensed under the MIT License.
-* See COPYING file in the project root for full license information.
-*/
+ * This file is part of mipOS
+ * Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+ * All rights reserved.
+ * Licensed under the MIT License.
+ * See COPYING file in the project root for full license information.
+ */
 
 
 /* -------------------------------------------------------------------------- */
@@ -67,15 +67,15 @@ void mipos_bsp_setup_reset_and_wd(void)
 /* -------------------------------------------------------------------------- */
 
 /**
-  * @brief Timer4 Update/Overflow Interrupt routine.
-  * @par Parameters:
-  * None
-  * @retval
-  * None
-  */
+ * @brief Timer4 Update/Overflow Interrupt routine.
+ * @par Parameters:
+ * None
+ * @retval
+ * None
+ */
 #ifdef __SDCC
 INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
-#elif defined( _COSMIC_ )
+#elif defined(_COSMIC_)
 @far @interrupt void TIM4_UPD_OVF_IRQHandler(void)
 #else /* _RAISONANCE_ */
 void TIM4_UPD_OVF_IRQHandler(void) interrupt 23
@@ -102,7 +102,7 @@ void mipos_bsp_create_hw_rtc_timer(void)
     TIM4_TimeBaseInit(TIM4_PRESCALER_128, 125);
 #else
     TIM4_TimeBaseInit(TIM4_PRESCALER_32, 125);
-#endif		
+#endif
 
     TIM4_UpdateRequestConfig(TIM4_UPDATESOURCE_GLOBAL);
     TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
@@ -113,11 +113,8 @@ void mipos_bsp_create_hw_rtc_timer(void)
 /* -------------------------------------------------------------------------- */
 
 #ifdef __SDCC
-void * mipos_get_sp()
+void* mipos_get_sp()
 {
-   __asm
-   LDW X,SP
-   ADDW X, #2
-   __endasm ;
+    __asm LDW X, SP ADDW X, #2 __endasm;
 }
 #endif

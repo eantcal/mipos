@@ -1,12 +1,12 @@
 /*
-* This file is part of mipOS
-* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-* All rights reserved.
-* Licensed under the MIT License.
-* See COPYING file in the project root for full license information.
-*/
+ * This file is part of mipOS
+ * Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+ * All rights reserved.
+ * Licensed under the MIT License.
+ * See COPYING file in the project root for full license information.
+ */
 
-/* --------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 #include "mipos.h"
 
@@ -15,35 +15,38 @@
 
 /* TODO: implement for dubugging purposes */
 void assert_failed(unsigned char* file, unsigned long line)
-{ 
-    (void) file;
-    (void) line;
+{
+    (void)file;
+    (void)line;
 
-    while (1);
+    while (1)
+        ;
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-/* TODO: implement putchar required by vprintf */ 
+/* TODO: implement putchar required by vprintf */
 
 #if defined(__SDCC) && __SDCC_REVISION < 9624 // Old SDCC weirdness
-void putchar(char c) {
-    (void) c;
+void putchar(char c)
+{
+    (void)c;
 }
 #else // Standard C
-int putchar(int c) {
+int putchar(int c)
+{
     return (c);
 }
 #endif
 
 
-/* --------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 static char root_stack[16 * 1024] = { 0 };
 
 
-/* --------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 int root_task(task_param_t param)
 {
@@ -56,7 +59,7 @@ int root_task(task_param_t param)
 }
 
 
-/* --------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 int main()
 {
@@ -65,5 +68,3 @@ int main()
 
     return 0; // this statement is never executed
 }
-
-

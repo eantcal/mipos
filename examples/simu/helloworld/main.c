@@ -1,23 +1,26 @@
 /*
-* This file is part of mipOS
-* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-* All rights reserved.
-* Licensed under the MIT License.
-* See COPYING file in the project root for full license information.
-*/
+ * This file is part of mipOS
+ * Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+ * All rights reserved.
+ * Licensed under the MIT License.
+ * See COPYING file in the project root for full license information.
+ */
 
 
-/* --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+ */
 
 #include "mipos.h"
 
 
-/* --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+ */
 
 static char root_stack[16 * 1024] = { 0 };
 
 
-/* --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+ */
 
 int root_task(task_param_t param)
 {
@@ -30,7 +33,8 @@ int root_task(task_param_t param)
 }
 
 
-/* --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+ */
 
 int main()
 {

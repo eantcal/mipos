@@ -1,10 +1,10 @@
 /*
-* This file is part of mipOS
-* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-* All rights reserved.
-* Licensed under the MIT License.
-* See COPYING file in the project root for full license information.
-*/
+ * This file is part of mipOS
+ * Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+ * All rights reserved.
+ * Licensed under the MIT License.
+ * See COPYING file in the project root for full license information.
+ */
 
 /* -------------------------------------------------------------------------- */
 
@@ -18,9 +18,9 @@
 
 #ifndef CONSOLE_SENDER_STACK
 #define CONSOLE_SENDER_STACK (512)
-#endif 
+#endif
 
-#ifndef CONSOLE_RECEIVER_STACK 
+#ifndef CONSOLE_RECEIVER_STACK
 #define CONSOLE_RECEIVER_STACK (512)
 #endif
 

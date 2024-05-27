@@ -4,7 +4,6 @@
     <ClCompile Include="mipos_kernel.c" />
     <ClCompile Include="mipos_console.c" />
     <ClCompile Include="mipos_diskio.c" />
-    <ClCompile Include="mipos_fs.c" />
     <ClCompile Include="mipos_malloc.c" />
     <ClCompile Include="mipos_mpool.c" />
     <ClCompile Include="mipos_queue.c" />
@@ -14,6 +13,7 @@
     <ClCompile Include="arch\simu\mipos_bsp_simu.c">
       <Filter>arch</Filter>
     </ClCompile>
+    <ClCompile Include="mipos_tfs.c" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="include">
@@ -34,9 +34,6 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="mipos_diskio.h">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="mipos_fs.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="mipos_kernel.h">
@@ -69,5 +66,11 @@
     <ClInclude Include="arch\simu\mipos_bsp_simu.h">
       <Filter>arch</Filter>
     </ClInclude>
+    <ClInclude Include="mipos_tfs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="bspX64.asm">
+      <Filter>arch</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

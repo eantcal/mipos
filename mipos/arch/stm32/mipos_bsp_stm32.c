@@ -1,16 +1,16 @@
 /*
-* This file is part of mipOS
-* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-* All rights reserved.
-* Licensed under the MIT License.
-* See COPYING file in the project root for full license information.
-*/
+ * This file is part of mipOS
+ * Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+ * All rights reserved.
+ * Licensed under the MIT License.
+ * See COPYING file in the project root for full license information.
+ */
 
 
 /* -------------------------------------------------------------------------- */
 
-#include "mipos_kernel.h"
 #include "mipos_bsp_stm32.h"
+#include "mipos_kernel.h"
 
 
 /* -------------------------------------------------------------------------- */
@@ -31,7 +31,8 @@ void mipos_bsp_setup_reset_and_wd(void)
     RCC_RTCCLKConfig(RCC_RTCCLKSource_LSI);
 
     /* IWDG timeout equal to 350ms (the timeout may varies due to LSI frequency
-       dispersion) -------------------------------------------------------------*/
+       dispersion)
+       -------------------------------------------------------------*/
     /* Enable write access to IWDG_PR and IWDG_RLR registers */
     IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
 
@@ -55,11 +56,11 @@ void mipos_bsp_setup_reset_and_wd(void)
 void mipos_bsp_exception_vector(void)
 {
     // NVIC init
-#ifndef  EMB_FLASH
-  /* Set the Vector Table base location at 0x20000000 */
+#ifndef EMB_FLASH
+    /* Set the Vector Table base location at 0x20000000 */
     NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);
-#else  /* VECT_TAB_FLASH  */
-  /* Set the Vector Table base location at 0x08000000 */
+#else /* VECT_TAB_FLASH  */
+    /* Set the Vector Table base location at 0x08000000 */
     NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);
 #endif
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
@@ -74,9 +75,10 @@ void mipos_bsp_setup_clk(void)
     // 1. Clocking the controller from internal HSI RC (8 MHz)
     // wait until the HSI is ready
     RCC_HSICmd(ENABLE);
-    while (RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET);
+    while (RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET)
+        ;
 
-    //Use internal hoscillator
+    // Use internal hoscillator
     RCC_SYSCLKConfig(RCC_SYSCLKSource_HSI);
     RCC_HSEConfig(RCC_HSE_OFF);
 
@@ -84,12 +86,13 @@ void mipos_bsp_setup_clk(void)
     RCC_MCOConfig(RCC_MCO_HSI);
 #define HSI_CALIBRATION_VALUE 0x1c
     RCC_AdjustHSICalibrationValue(HSI_CALIBRATION_VALUE);
-#endif  
+#endif
 
     // 3. Init PLL
     RCC_PLLConfig(RCC_PLLSource_HSI_Div2, RCC_PLLMul_16); // 64MHz
     RCC_PLLCmd(ENABLE);
-    while (RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);
+    while (RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET)
+        ;
 
     // 4. Set system clock dividers
     RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
@@ -123,21 +126,24 @@ void mipos_bsp_setup_clk(void)
     RCC_HSICmd(ENABLE);
 
     // wait until the HSI is ready
-    while (RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET);
+    while (RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET)
+        ;
     RCC_SYSCLKConfig(RCC_SYSCLKSource_HSI);
 
     // 2. Enable ext. high frequency OSC
     RCC_HSEConfig(RCC_HSE_ON);
 
     // wait until the HSE is ready
-    while (RCC_GetFlagStatus(RCC_FLAG_HSERDY) == RESET);
+    while (RCC_GetFlagStatus(RCC_FLAG_HSERDY) == RESET)
+        ;
 
     // 3. Init PLL
     RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9); // 72MHz
     RCC_PLLCmd(ENABLE);
 
     // wait until the PLL is ready
-    while (RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);
+    while (RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET)
+        ;
 
     // 4. Set system clock dividers
     RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
@@ -161,9 +167,8 @@ void mipos_bsp_setup_clk(void)
 
     // 5. Clock system from PLL
     RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
-
 }
-#endif //! USE_EXTERNAL_OSCILLATOR 
+#endif //! USE_EXTERNAL_OSCILLATOR
 
 
 /* -------------------------------------------------------------------------- */
@@ -211,7 +216,7 @@ void mipos_bsp_configure_rs232(unsigned int baud_rate)
 
 /* -------------------------------------------------------------------------- */
 
-unsigned int mipos_bsp_rs232_recv_byte(unsigned char *key)
+unsigned int mipos_bsp_rs232_recv_byte(unsigned char* key)
 {
     if (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) != RESET) {
         *key = (unsigned char)USART2->DR;
@@ -233,4 +238,3 @@ void mipos_bsp_rs232_putc(unsigned char c)
 
     USART_SendData(USART2, c);
 }
-

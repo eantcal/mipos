@@ -1,0 +1,1 @@
+find . -type f -name \*.[ch] -exec clang-format --verbose -i -style="{BasedOnStyle: Mozilla, IndentWidth: 4, AlwaysBreakAfterDefinitionReturnType: None, AlwaysBreakAfterReturnType: None, MaxEmptyLinesToKeep: 2}" {} \;

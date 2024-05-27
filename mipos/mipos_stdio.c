@@ -1,42 +1,35 @@
 /*
-* This file is part of mipOS
-* Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
-* All rights reserved.
-* Licensed under the MIT License.
-* See COPYING file in the project root for full license information.
-*/
+ * This file is part of mipOS
+ * Copyright (c) Antonino Calderone (antonino.calderone@gmail.com)
+ * All rights reserved.
+ * Licensed under the MIT License.
+ * See COPYING file in the project root for full license information.
+ */
 
-
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 #ifdef ENABLE_MIPOS_STDIO
 
-/* -------------------------------------------------------------------------- */
-
+/* ------------------------------------------------------------------------- */
 
 #include "mipos_stdio.h"
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
-static mipos_fs_t* _fs_ptr = 0;
+static mipos_tfs_t* _fs_ptr = 0;
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-void mipos_init_stdio(void* fs_ptr)
+void mipos_init_ramdisk_stdio(void* fs_ptr)
 {
     _fs_ptr = fs_ptr;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-mipos_FILE* mipos_fopen(
-    const char * name,
-    const char * mode
-)
+mipos_tfs_FILE* mipos_tfs_fopen(const char* name, const char* mode)
 {
-    mipos_fs_file_handle_t file_handle;
+    mipos_tfs_file_handle_t file_handle;
     int lm;
     char m[8] = { 0 };
 
@@ -61,21 +54,19 @@ mipos_FILE* mipos_fopen(
 
     */
 
-    //Binary mode is ignored (binary mode is assumed for default)
+    // Binary mode is ignored (binary mode is assumed for default)
     if (!lm && m[lm - 1] == 'b') {
         m[lm - 1] = 0;
     }
 
     if (strcmp(m, "r") == 0 || strcmp(m, "r+") == 0) {
-        if (mipos_fs_open_file(_fs_ptr,
-            name,
-            &file_handle,
-            strcmp(m, "r") == 0 ?
-            mipos_fs_FILE_OPEN_READ :
-            mipos_fs_FILE_OPEN_WRITE))
-        {
-            mipos_FILE* f =
-                (mipos_FILE*)malloc(sizeof(mipos_FILE));
+        if (mipos_tfs_open_file(_fs_ptr,
+                                name,
+                                &file_handle,
+                                strcmp(m, "r") == 0
+                                  ? mipos_tfs_FILE_OPEN_READ
+                                  : mipos_tfs_FILE_OPEN_WRITE)) {
+            mipos_tfs_FILE* f = (mipos_tfs_FILE*)malloc(sizeof(mipos_tfs_FILE));
 
             if (f) {
                 f->_handle = file_handle;
@@ -84,16 +75,11 @@ mipos_FILE* mipos_fopen(
 
             return f;
         }
-    }
-    else if (strcmp(m, "w+") == 0 || strcmp(m, "w") == 0) {
-        mipos_fs_delete_file(_fs_ptr, name);
+    } else if (strcmp(m, "w+") == 0 || strcmp(m, "w") == 0) {
+        mipos_tfs_delete_file(_fs_ptr, name);
 
-        if (mipos_fs_create_file(_fs_ptr,
-            name,
-            &file_handle))
-        {
-            mipos_FILE* f =
-                (mipos_FILE*)malloc(sizeof(mipos_FILE));
+        if (mipos_tfs_create_file(_fs_ptr, name, &file_handle)) {
+            mipos_tfs_FILE* f = (mipos_tfs_FILE*)malloc(sizeof(mipos_tfs_FILE));
 
             if (f) {
                 f->_handle = file_handle;
@@ -107,12 +93,11 @@ mipos_FILE* mipos_fopen(
     return 0;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-int mipos_fclose(mipos_FILE* f)
+int mipos_tfs_fclose(mipos_tfs_FILE* f)
 {
-    if (f && (mipos_fs_close_file(_fs_ptr, f->_handle))) {
+    if (f && (mipos_tfs_close_file(_fs_ptr, f->_handle))) {
         free(f);
         return 0; // success
     }
@@ -120,42 +105,39 @@ int mipos_fclose(mipos_FILE* f)
     return EOF;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-int mipos_feof(mipos_FILE* f)
+int mipos_tfs_feof(mipos_tfs_FILE* f)
 {
-    mipos_fs_ctl_t fctl;
+    mipos_tfs_ctl_t fctl;
 
     if (!f->_read_only) {
         return 0;
     }
 
-    if (mipos_fs_get_ctl(_fs_ptr, f->_handle, &fctl)) {
+    if (mipos_tfs_get_ctl(_fs_ptr, f->_handle, &fctl)) {
         return fctl.eof_while_read;
     }
 
     return 0;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-long mipos_ftell(mipos_FILE *f)
+long mipos_tfs_ftell(mipos_tfs_FILE* f)
 {
-    mipos_fs_ctl_t fctl;
+    mipos_tfs_ctl_t fctl;
 
-    if (mipos_fs_get_ctl(_fs_ptr, f->_handle, &fctl))  {
+    if (mipos_tfs_get_ctl(_fs_ptr, f->_handle, &fctl)) {
         return fctl.seek_pointer;
     }
 
     return EOF;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-int mipos_fseek(mipos_FILE* f, long pos, int origin)
+int mipos_tiny_fseek(mipos_tfs_FILE* f, long pos, int origin)
 {
     /*
       The fseek function moves the file pointer (if any)
@@ -171,24 +153,24 @@ int mipos_fseek(mipos_FILE* f, long pos, int origin)
         SEEK_SET Beginning of file
     */
 
-    mipos_fs_seek_t fseek_code;
+    mipos_tfs_seek_t fseek_code;
     int new_pos;
 
     switch (origin) {
-    case SEEK_SET:
-        fseek_code = mipos_fs_SEEK_BEGIN;
-        break;
+        case SEEK_SET:
+            fseek_code = mipos_tfs_SEEK_BEGIN;
+            break;
 
-    case SEEK_CUR:
-        fseek_code = mipos_fs_SEEK_CURRENT;
-        break;
+        case SEEK_CUR:
+            fseek_code = mipos_tfs_SEEK_CURRENT;
+            break;
 
-    case SEEK_END:
-        fseek_code = mipos_fs_SEEK_END;
-        break;
+        case SEEK_END:
+            fseek_code = mipos_tfs_SEEK_END;
+            break;
 
-    default:
-        return 0;
+        default:
+            return 0;
     }
 
     new_pos = pos;
@@ -198,100 +180,85 @@ int mipos_fseek(mipos_FILE* f, long pos, int origin)
       Otherwise, it returns a nonzero value; in our case,
       returns new_pos: you could use this value for debugging purpose
     */
-    return mipos_fs_seek_file(_fs_ptr,
-        fseek_code,
-        &new_pos,
-        f->_handle) ?
-        0 :
-        new_pos;
+    return mipos_tfs_seek_file(_fs_ptr, fseek_code, &new_pos, f->_handle)
+             ? 0
+             : new_pos;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-size_t mipos_fread(
-    void *      buffer,
-    size_t      size,
-    size_t      count,
-    mipos_FILE* f
-)
+size_t mipos_tfs_fread(void* buffer,
+                       size_t size,
+                       size_t count,
+                       mipos_tfs_FILE* f)
 {
-    mipos_fs_fd_t fd;
+    mipos_tfs_fd_t fd;
     uint32_t rbytes;
 
     rbytes = (uint32_t)(size * count);
 
-    if (mipos_fs_read_file(_fs_ptr, (char*)buffer, &rbytes, f->_handle)) {
+    if (mipos_tfs_read_file(_fs_ptr, (char*)buffer, &rbytes, f->_handle)) {
         return rbytes / size;
     }
 
-    mipos_fs_get_fd(_fs_ptr, f->_handle, &fd);
+    mipos_tfs_get_fd(_fs_ptr, f->_handle, &fd);
 
     return rbytes < size * count ? rbytes / size : 0;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-size_t mipos_fwrite(
-    const void* buffer,
-    size_t      size,
-    size_t      count,
-    mipos_FILE* f
-)
+size_t mipos_tfs_fwrite(const void* buffer,
+                        size_t size,
+                        size_t count,
+                        mipos_tfs_FILE* f)
 {
     uint32_t wbytes;
 
     wbytes = (uint32_t)(size * count);
 
-    if (mipos_fs_write_file(_fs_ptr, (const char*)buffer, &wbytes, f->_handle)) {
+    if (mipos_tfs_write_file(
+          _fs_ptr, (const char*)buffer, &wbytes, f->_handle)) {
         return wbytes / size;
     }
 
     return wbytes < (size * count) ? wbytes / size : 0;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-int mipos_fgetc(mipos_FILE* stream) {
+int mipos_tfs_fgetc(mipos_tfs_FILE* stream)
+{
     char c = 0;
-    int ret = mipos_fread(&c, 1, 1, stream);
-    return ret == 1 ? c : ret;
+    size_t ret = mipos_tfs_fread(&c, 1, 1, stream);
+    return ret == 1 ? c : (int)ret;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-int mipos_rename(const char* source_file, const char* dest_file) 
+int mipos_tfs_rename(const char* source_file, const char* dest_file)
 {
-    return mipos_fs_rename_file(_fs_ptr, source_file, dest_file) ? 0 : -1;
+    return mipos_tfs_rename_file(_fs_ptr, source_file, dest_file) ? 0 : -1;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-int mipos_remove(const char* filename) 
+int mipos_tfs_remove(const char* filename)
 {
-    return mipos_fs_delete_file(_fs_ptr, filename) ? 0 : -1;
+    return mipos_tfs_delete_file(_fs_ptr, filename) ? 0 : -1;
 }
 
+/* ------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-int mipos_filesize(const char* filename)
+int mipos_tfs_filesize(const char* filename)
 {
     uint32_t filesize = 0;
-    int ret = mipos_fs_get_fsize(_fs_ptr, filename, &filesize);
+    int ret = mipos_tfs_get_fsize(_fs_ptr, filename, &filesize);
     return ret ? filesize : -1;
 }
 
-
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 #endif //! ENABLE_MIPOS_STDIO
 
-
-/* -------------------------------------------------------------------------- */
-
-
+/* ------------------------------------------------------------------------- */
