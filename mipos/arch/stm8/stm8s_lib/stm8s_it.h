@@ -182,7 +182,7 @@ INTERRUPT_HANDLER(ADC2_IRQHandler, 22);
 #endif
 #else /* (STM8S105) || (STM8S103) || (STM8S903) || (STM8AF622x) */
 #if defined(_IAR_)
-INTERRUPT void ADC1_IRQHandler(void);         /* ADC1 */
+INTERRUPT void ADC1_IRQHandler(void); /* ADC1 */
 #elif defined(_SDCC_)
 INTERRUPT_HANDLER(ADC1_IRQHandler, 22);
 #endif

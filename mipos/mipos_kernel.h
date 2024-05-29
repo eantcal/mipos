@@ -123,7 +123,7 @@ void mipos_update_rtc(uint32_t quantum);
         (_PTASK)->param = _PARAM;                                              \
         (_PTASK)->u_flags.i_flags = 0;                                         \
         (_PTASK)->u_flags.flags.rt_task =                                      \
-          ((_FLAGS)&MIPOS_RT) == MIPOS_RT ? 1 : 0;                             \
+          ((_FLAGS) & MIPOS_RT) == MIPOS_RT ? 1 : 0;                           \
     } while (0)
 
 
@@ -461,7 +461,7 @@ void mipos_get_rtc_counter(mipos_rtc_cntr_t* cnt);
         mipos_enter_cs();                                                      \
         p_task = _mipos_get_p_task(_TID);                                      \
         if (p_task) {                                                          \
-            p_task->signal_pending |= (_SIGNUM)&p_task->signal_mask;           \
+            p_task->signal_pending |= (_SIGNUM) & p_task->signal_mask;         \
         }                                                                      \
         mipos_leave_cs();                                                      \
     } while (0)

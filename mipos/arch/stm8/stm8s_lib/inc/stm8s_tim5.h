@@ -305,7 +305,7 @@ typedef enum
      ((FLAG) == TIM5_FLAG_CC2OF) || ((FLAG) == TIM5_FLAG_CC3OF))
 
 #define IS_TIM5_CLEAR_FLAG_OK(FLAG)                                            \
-    ((((uint16_t)(FLAG)&0xF1F0) == 0x0000) && ((uint16_t)(FLAG) != 0x0000))
+    ((((uint16_t)(FLAG) & 0xF1F0) == 0x0000) && ((uint16_t)(FLAG) != 0x0000))
 
 
 /**

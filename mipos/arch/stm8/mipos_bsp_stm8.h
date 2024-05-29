@@ -117,7 +117,7 @@ extern void* mipos_get_sp();
 /* -------------------------------------------------------------------------- */
 
 #define mipos_tm_msleep(_COUNT)                                                \
-    _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT)*1000)
+    _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT) * 1000)
 
 #define mipos_tm_usleep(_COUNT)                                                \
     _mipos_tm_rtc_quantum_sleep(SIGTMR, (_COUNT) / 1000)

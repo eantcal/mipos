@@ -261,7 +261,7 @@ typedef enum
      ((FLAG) == TIM3_FLAG_CC2OF))
 
 #define IS_TIM3_CLEAR_FLAG_OK(FLAG)                                            \
-    ((((uint16_t)(FLAG)&0xF9F8) == 0x0000) && ((uint16_t)(FLAG) != 0x0000))
+    ((((uint16_t)(FLAG) & 0xF9F8) == 0x0000) && ((uint16_t)(FLAG) != 0x0000))
 
 /**
  * @}

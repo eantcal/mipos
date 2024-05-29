@@ -118,7 +118,7 @@ typedef enum
       (uint8_t)23, /*!< TIM6 update/overflow/underflow/trigger/
                    interrupt */
 #else
-    ITC_IRQ_TIM4_OVF = (uint8_t)23,    /*!< TIM4 update /overflow interrupt */
+    ITC_IRQ_TIM4_OVF = (uint8_t)23, /*!< TIM4 update /overflow interrupt */
 #endif /*STM8S903 or STM8AF622x */
 
     ITC_IRQ_EEPROM_EEC = (uint8_t)24 /*!< Flash interrupt */

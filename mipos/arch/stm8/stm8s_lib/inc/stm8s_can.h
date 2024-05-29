@@ -523,7 +523,7 @@ typedef enum
  * @brief  Macro used by the assert function in order to check the Last Error
  * Code.
  */
-#define IS_CAN_LAST_ERROR_CODE_OK(CODE) (((CODE)&0x8F) == 0x00)
+#define IS_CAN_LAST_ERROR_CODE_OK(CODE) (((CODE) & 0x8F) == 0x00)
 /**
  * @}
  */

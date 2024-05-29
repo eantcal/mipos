@@ -4344,7 +4344,7 @@ FRESULT f_read(FIL* fp,    /* Pointer to the file object */
 #else
         mem_cpy(rbuff,
                 fp->buf + fp->fptr % SS(fs),
-                rcnt);      /* Extract partial sector */
+                rcnt); /* Extract partial sector */
 #endif
     }
 
@@ -6280,7 +6280,7 @@ FRESULT f_forward(FIL* fp, /* Pointer to the file object */
             ABORT(fs, FR_DISK_ERR); /* Move sector window to the file data */
         dbuf = fs->win;
 #else
-        if (fp->sect != sect) {        /* Fill sector cache with file data */
+        if (fp->sect != sect) { /* Fill sector cache with file data */
 #if !FF_FS_READONLY
             if (fp->flag & FA_DIRTY) { /* Write-back dirty sector cache */
                 if (disk_write(fs->pdrv, fp->buf, fp->sect, 1) != RES_OK)
