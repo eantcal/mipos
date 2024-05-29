@@ -211,7 +211,7 @@
     <ClInclude Include="mipos_types.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="bspX64.asm">
+    <MASM Include="arch\simu\bspX64.asm">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug64|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug64|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

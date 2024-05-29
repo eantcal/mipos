@@ -78,10 +78,10 @@ typedef uintptr_t mipos_ptr_t; // Universal pointer type compatible with the
 extern void mipos_replace_sp(void** old_sp, void* new_sp);
 extern void mipos_set_sp(void* new_sp);
 extern mipos_reg_t mipos_get_sp();
-extern int set_context(void* buffer);
-extern void jump_context(void* buffer, int value);
-#define mipos_save_context(_x) set_context((unsigned int*)_x)
-#define mipos_context_switch_to(_x) jump_context((unsigned int*)_x, 1)
+extern int mipos_save_context64(void* buffer);
+extern void mipos_context_switch64(void* buffer, int value);
+#define mipos_save_context(_x) mipos_save_context64((unsigned int*)_x)
+#define mipos_context_switch_to(_x) mipos_context_switch64((unsigned int*)_x, 1)
 #else
 #define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
     __asm { mov ebx, [__OLD_SP] }                                              \
@@ -179,8 +179,8 @@ extern unsigned int mipos_get_sp();
 #define mipos_bsp_create_hw_rtc_timer()
 #define mipos_kick_watchdog()
 
-#define CONSOLE_SENDER_STACK (1024 * 1024)
-#define CONSOLE_RECEIVER_STACK (1024 * 1024)
+#define MIPOS_CONSOLE_TX_STACK (1024 * 1024)
+#define MIPOS_CONSOLE_RX_STACK (1024 * 1024)
 
 #define MIPOS_LE_U16(x) (x)
 #define MIPOS_LE_U32(x) (x)

@@ -9,7 +9,9 @@
 /* ------------------------------------------------------------------------- */
 
 #ifdef ENABLE_MIPOS_MALLOC
+#ifndef ENABLE_MIPOS_MM
 #define ENABLE_MIPOS_MM
+#endif
 #endif
 
 #ifdef ENABLE_MIPOS_MM

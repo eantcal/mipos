@@ -49,8 +49,8 @@ static mipos_console_cmd_t* mipos_cmd_list = &_mipos_cmd_list[0];
 static unsigned int end_line_char = '\n';
 static console_flg_t console_flags = 0L;
 static const char* console_prompt = 0;
-static char sender_task_stack[CONSOLE_SENDER_STACK];
-static char recvr_task_stack[CONSOLE_RECEIVER_STACK];
+static char sender_task_stack[MIPOS_CONSOLE_TX_STACK];
+static char recvr_task_stack[MIPOS_CONSOLE_RX_STACK];
 static mipos_queue_t rs232_tx_queue;
 static mipos_q_item_t rs232_tx_queue_pool[RS232_TX_QUEUE_LEN];
 

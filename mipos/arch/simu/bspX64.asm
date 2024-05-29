@@ -37,7 +37,7 @@ mipos_set_sp ENDP
 .code
 ; Define setjmp equivalent in Windows x64 ABI
 ; RCX points to the buffer
-set_context PROC
+mipos_save_context64 PROC
     mov [rcx], rax
     mov [rcx + 8], rbx
     mov [rcx + 16], rcx
@@ -59,11 +59,11 @@ set_context PROC
     mov [rcx + 128], rax
     xor rax, rax    ; Convention: setjmp returns 0 on initial call
     ret
-set_context ENDP
+mipos_save_context64 ENDP
 
 ; Define longjmp equivalent in Windows x64 ABI
 ; RCX points to the buffer, RDX is the value to return from setjmp
-jump_context PROC
+mipos_context_switch64 PROC
     mov rax, [rcx]        ; Restore all registers
     mov rbx, [rcx + 8]
     mov rcx, [rcx + 16]
@@ -83,6 +83,6 @@ jump_context PROC
     mov rdx, [rcx + 24]
     mov rcx, [rcx + 128]       ; Jump to stored RIP
     jmp rcx
-jump_context ENDP
+mipos_context_switch64 ENDP
 
 END
