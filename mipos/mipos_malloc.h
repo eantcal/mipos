@@ -17,7 +17,8 @@
 
 typedef struct _mdesc
 {
-    struct _mdesc *_next, *_prev;
+    struct _mdesc* _next;
+    struct _mdesc* _prev;
     size_t _block_size;
 } mipos_mdesc_t;
 

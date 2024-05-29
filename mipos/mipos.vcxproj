@@ -110,7 +110,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>.;arch/simu</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL;_MBCS;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL;_MBCS;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions); ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -122,7 +122,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>.;arch/simu</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_MBCS;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions); ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -136,7 +136,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>.;arch/simu</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL;_MBCS; ENABLE_MIPOS_MPOOL;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL;_MBCS; ENABLE_MIPOS_MPOOL;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions); ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -152,7 +152,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>.;arch/simu</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_MBCS;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;ENABLE_MIPOS_CONSOLE; ENABLE_MIPOS_MM;ENABLE_MIPOS_FS; ENABLE_MIPOS_STDIO;MIPOS_TARGET_SIMU;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions); ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -162,12 +162,22 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL;; ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL;_MBCS;%(PreprocessorDefinitions); ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>; ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions); ENABLE_MIPOS_MALLOC; ENABLE_MIPOS_MPOOL</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -12,16 +12,12 @@
 
 /* ------------------------------------------------------------------------- */
 
-#ifdef MIPOS64
-#error 64 bit platform not supported yet
-#endif
-
 mipos_mm_t mm;
 char malloc_arena[1024 * 1024] = { 0 };
 
 static int exec_free_command(int argc, char* argv[])
 {
-#ifdef MIPOS64
+#if defined(MIPOS64) || defined(MIPOS32)
     uintptr_t addr = 0;
 #else
     int addr = 0;
@@ -59,6 +55,14 @@ static int exec_command(int argc, char* argv[])
     // Show all files and related content
     else if (0 == strcmp(argv[0], "alloc")) {
         int size = rand() % 1024;
+
+        if (argc > 1) {
+            size = atoi(argv[1]);
+        } else {
+            mipos_printf("Size parameter not provided, using random size %i\n",
+                         size);
+        }
+
         void* ptr = mipos_mm_alloc(&mm, size);
         mipos_printf("Allocating %i bytes at %p\n", size, ptr);
     }

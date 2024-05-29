@@ -1,0 +1,7 @@
+# .clang-format
+BasedOnStyle: Mozilla
+IndentWidth: 4
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+MaxEmptyLinesToKeep: 2
+
