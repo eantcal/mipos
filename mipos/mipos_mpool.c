@@ -46,14 +46,14 @@ void mipos_mpool_init(mipos_mpool_t* _this,
         pnext =
           (mipos_mpool_block_ptr_t)((char*)block_ptr + _this->_block_size);
 
-        //      (mipos_mpool_block_ptr_t)*block_ptr = pnext; // VC++ alternative
-        *((uintptr_t*)block_ptr) = (unsigned int)pnext;
+        // Store the address of the next block in the current block
+        *((mipos_mpool_block_ptr_t*)block_ptr) = pnext;
 
         block_ptr = pnext;
     }
 
-    //   (mipos_mpool_block_ptr_t)(*block_ptr) = 0;// VC++ alternative
-    *((uintptr_t*)block_ptr) = 0;
+    // Last block points to NULL
+    *((mipos_mpool_block_ptr_t*)block_ptr) = 0;
 
     _this->_free_head_ptr = (mipos_mpool_block_ptr_t)_this->_arena_ptr;
 }
@@ -68,7 +68,7 @@ void* mipos_mpool_alloc(mipos_mpool_t* _this)
     }
 
     mipos_mpool_block_ptr_t alloc_ptr = _this->_free_head_ptr;
-    _this->_free_head_ptr = (mipos_mpool_block_ptr_t)*alloc_ptr;
+    _this->_free_head_ptr = *((mipos_mpool_block_ptr_t*)alloc_ptr);
 
     --_this->_free_blocks;
 
@@ -83,7 +83,7 @@ void mipos_mpool_free(mipos_mpool_t* _this, void* ptr)
     mipos_mpool_block_ptr_t head = _this->_free_head_ptr;
     _this->_free_head_ptr = (mipos_mpool_block_ptr_t)ptr;
 
-    *((uintptr_t*)(ptr)) = (unsigned int)head;
+    *((mipos_mpool_block_ptr_t*)ptr) = head;
 
     ++_this->_free_blocks;
 }

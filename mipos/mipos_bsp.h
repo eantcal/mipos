@@ -8,8 +8,8 @@
 
 /* ------------------------------------------------------------------------- */
 
-#ifndef mipos_BSP_H__
-#define mipos_BSP_H__
+#ifndef MIPOS_BSP_H__
+#define MIPOS_BSP_H__
 
 #define RESET_TYPE_HWRS 0
 #define RESET_TYPE_IWDG 1
@@ -52,6 +52,6 @@ void mipos_bsp_rs232_putc(unsigned char c);
 #include "mipos_bsp_simu.h"
 #endif
 
-#endif // ... mipos_BSP_H__
+#endif
 
 /* ------------------------------------------------------------------------- */

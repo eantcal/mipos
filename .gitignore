@@ -2,6 +2,7 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+/build
 /mipos/Debug
 /examples/simu/helloworld/Debug
 /examples/Debug

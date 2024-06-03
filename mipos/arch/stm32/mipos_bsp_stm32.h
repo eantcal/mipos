@@ -43,7 +43,7 @@ int mipos_bsp_check_reset_type(void);
         *((u32*)(0xE0042004)) = 0x4500;                                        \
     } while (0)
 
-#define mipos_tm_msleep(_COUNT) _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
+#define mipos_tm_msleep(_COUNT) _mipos_tm_rtc_quantum_sleep(MIPOS_SIGTMR, _COUNT)
 
 
 /* -------------------------------------------------------------------------- */

@@ -40,7 +40,7 @@ void ff_memfree(void* mblock /* Pointer to the memory block to free */
 #include "mipos.h"
 
 /*------------------------------------------------------------------------*/
-/* Create a Synchronization Object
+/* Create a Synchronization Object                                        */
 /*------------------------------------------------------------------------*/
 /* This function is called in f_mount() function to create a new
 /  synchronization object for the volume, such as semaphore and mutex.

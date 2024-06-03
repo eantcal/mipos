@@ -52,7 +52,7 @@ mipos_q_size_t mipos_q_send(mipos_queue_t* queue, mipos_q_item_t item)
         queue->tail = (queue->tail + 1) % queue->queue_limit;
 
         if (queue->suspended_tid) {
-            mipos_t_notify_signal(queue->suspended_tid, SIGQUE);
+            mipos_t_notify_signal(queue->suspended_tid, MIPOS_SIGQUE);
         }
 
         ret_count = queue->queue_count;
@@ -62,7 +62,7 @@ mipos_q_size_t mipos_q_send(mipos_queue_t* queue, mipos_q_item_t item)
         return ret_count;
     } else {
         if (queue->suspended_tid) {
-            mipos_t_notify_signal(queue->suspended_tid, SIGQUE);
+            mipos_t_notify_signal(queue->suspended_tid, MIPOS_SIGQUE);
         }
     }
     mipos_leave_cs();
@@ -85,7 +85,7 @@ mipos_q_size_t mipos_q_receive(mipos_queue_t* queue,
         queue->suspended_tid = mipos_kernel_env.current_task;
 
         if (bl) {
-            _mipos_t_suspend(SIGQUE);
+            _mipos_t_suspend(MIPOS_SIGQUE);
         }
 
         queue->suspended_tid = 0;

@@ -80,17 +80,17 @@ void mipos_update_rtc(uint32_t quantum);
 /* ------------------------------------------------------------------------- */
 
 // System Signals
-#define SYS_RESERVED_SIGNALS (SIGWKP | SIGQUE | SIGALM | SIGTMR)
+#define SYS_RESERVED_SIGNALS (MIPOS_SIGWKP | MIPOS_SIGQUE | MIPOS_SIGALM | MIPOS_SIGTMR)
 
-#define SIGWKP 0x01
-#define SIGQUE 0x02
-#define SIGALM 0x04
-#define SIGTMR 0x08
+#define MIPOS_SIGWKP 0x01
+#define MIPOS_SIGQUE 0x02
+#define MIPOS_SIGALM 0x04
+#define MIPOS_SIGTMR 0x08
 
 // User signals
-#define SIGUSR1 0x10
-#define SIGUSR2 0x20
-#define SIGUSR3 0x40
+#define MIPOS_SIGUSR1 0x10
+#define MIPOS_SIGUSR2 0x20
+#define MIPOS_SIGUSR3 0x40
 
 #define SIGANY -1
 
@@ -98,7 +98,7 @@ void mipos_update_rtc(uint32_t quantum);
 /* ------------------------------------------------------------------------- */
 
 // Reserved for internal use only
-#define printk printf
+#define printk mipos_printf
 #define KERNEL__PANIC(_MSG)                                                    \
     do {                                                                       \
         printk(_MSG);                                                          \
@@ -223,7 +223,7 @@ mipos_task_t* _mipos_get_p_task(mipos_task_id_t id);
  *
  *  Apply to: NON-RT TASK, RT-TASK
  */
-#define mipos_t_resume(_TID) mipos_t_notify_signal(_TID, SIGWKP)
+#define mipos_t_resume(_TID) mipos_t_notify_signal(_TID, MIPOS_SIGWKP)
 
 
 /* ------------------------------------------------------------------------- */
@@ -232,7 +232,7 @@ mipos_task_t* _mipos_get_p_task(mipos_task_id_t id);
  *
  *  Apply to: NON-RT TASK
  */
-#define mipos_t_suspend() _mipos_t_suspend(SIGWKP)
+#define mipos_t_suspend() _mipos_t_suspend(MIPOS_SIGWKP)
 
 
 /* ------------------------------------------------------------------------- */
@@ -291,7 +291,7 @@ mipos_task_t* _mipos_get_p_task(mipos_task_id_t id);
  *
  *   @param _COUNT : the number of kernel ticks
  */
-#define mipos_tm_wkafter(_COUNT) _mipos_tm_wkafter(SIGALM, _COUNT)
+#define mipos_tm_wkafter(_COUNT) _mipos_tm_wkafter(MIPOS_SIGALM, _COUNT)
 
 
 /* ------------------------------------------------------------------------- */
@@ -322,7 +322,7 @@ mipos_task_t* _mipos_get_p_task(mipos_task_id_t id);
  *                  effect.
  */
 #ifndef mipos_tm_usleep
-#define mipos_tm_usleep(_COUNT) _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
+#define mipos_tm_usleep(_COUNT) _mipos_tm_rtc_quantum_sleep(MIPOS_SIGTMR, _COUNT)
 #endif
 
 
@@ -345,7 +345,7 @@ mipos_task_t* _mipos_get_p_task(mipos_task_id_t id);
  *                  effect.
  */
 #ifndef mipos_tm_msleep
-#define mipos_tm_msleep(_COUNT) _mipos_tm_rtc_quantum_sleep(SIGTMR, _COUNT)
+#define mipos_tm_msleep(_COUNT) _mipos_tm_rtc_quantum_sleep(MIPOS_SIGTMR, _COUNT)
 #endif
 
 

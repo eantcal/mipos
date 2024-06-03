@@ -52,7 +52,7 @@ int root_task(task_param_t param)
 {
     (void)param;
 
-    printf("Hello World !\n");
+    mipos_printf("Hello World !\n");
     mipos_t_suspend();
 
     return 0; // this statement is never executed

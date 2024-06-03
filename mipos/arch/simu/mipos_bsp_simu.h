@@ -8,16 +8,19 @@
 
 /* ------------------------------------------------------------------------- */
 
-#ifndef mipos_BSP_SIMU_H__
-#define mipos_BSP_SIMU_H__
+#ifndef MIPOS_BSP_SIMU_H__
+#define MIPOS_BSP_SIMU_H__
 
 #include "mipos_types.h"
 
-/* ------------------------------------------------------------------------- */
-
-#include <intrin.h>
+#include <ctype.h>
 #include <setjmp.h>
 #include <stdint.h>
+#include <unistd.h>
+
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -44,32 +47,32 @@
 /* ------------------------------------------------------------------------- */
 
 /* Platform independent type definitions */
-typedef uintptr_t mipos_ptr_t; // Universal pointer type compatible with the
-// target architecture
+typedef uintptr_t
+  mipos_ptr_t; // Universal pointer type compatible with the target architecture
 
 /* ------------------------------------------------------------------------- */
 
 /* Used only for debugging purpose on Windows and Linux platforms */
-#if (defined(_MSC_VER) || defined(__BORLANDC__))
-#if (defined(_WIN32))
+#if defined(_MSC_VER) || defined(__BORLANDC__)
+#if defined(_WIN32)
 #include <windows.h>
 #define KERNEL_DBG_DELAY Sleep(1)
 #endif
 #pragma check_stack(off)
 #pragma optimize("agpswy", on)
 
-#else // LINUX
+#else // LINUX or macOS
 
-#include <unistd.h>
 #define KERNEL_DBG_DELAY usleep(100)
+
 #endif
 
 /* ------------------------------------------------------------------------- */
 
 // Section for INTEL x86/x86-64 supporting Borland C++,
 // MS-Visual Studio C++ (Windows),
-// GCC (Windows/Linux) compilers
-#if (defined(_MSC_VER) || defined(__BORLANDC__))
+// GCC (Windows/Linux/macOS) compilers
+#if defined(_MSC_VER) || defined(__BORLANDC__)
 
 #pragma warning(disable : 4312)
 #pragma warning(disable : 4313)
@@ -84,12 +87,12 @@ extern void mipos_context_switch64(void* buffer, int value);
 #define mipos_context_switch_to(_x) mipos_context_switch64((unsigned int*)_x, 1)
 #else
 #define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
-    __asm { mov ebx, [__OLD_SP] }                                              \
+    __asm { mov ebx, [__OLD_SP] }                                                 \
     __asm                                                                      \
     {                                                                          \
         mov eax, esp                                                           \
     }                                                                          \
-    __asm { mov [ebx], eax }                                                   \
+    __asm { mov [ebx], eax }                                                      \
     __asm                                                                      \
     {                                                                          \
         mov eax, __STACK_P                                                     \
@@ -97,7 +100,7 @@ extern void mipos_context_switch64(void* buffer, int value);
     __asm { mov esp, eax }
 
 #define mipos_set_sp(__OLD_SP)                                                 \
-    __asm { mov eax, __OLD_SP }                                                \
+    __asm { mov eax, __OLD_SP }                                                   \
     __asm                                                                      \
     {                                                                          \
         mov esp, [eax]                                                         \
@@ -109,6 +112,47 @@ extern mipos_reg_t mipos_get_sp();
 #endif
 
 #elif defined(__GNUC__)
+
+#ifdef __APPLE__
+#if defined(__x86_64__)
+#define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
+    __asm__ __volatile__("movq %0, %%rbx\n\t"                                  \
+                         "movq %%rsp, %%rax\n\t"                               \
+                         "movq %%rax, (%%rbx)\n\t"                             \
+                         "movq %1, %%rax\n\t"                                  \
+                         "movq %%rax, %%rsp\n\t"                               \
+                         :                                                     \
+                         : "r"(__OLD_SP), "r"(__STACK_P)                       \
+                         : "%rax", "%rbx")
+
+#define mipos_set_sp(__OLD_SP)                                                 \
+    __asm__ __volatile__("movq %0, %%rax\n\t"                                  \
+                         "movq %%rax, %%rsp\n\t"                               \
+                         :                                                     \
+                         : "r"(__OLD_SP)                                       \
+                         : "%rax")
+#else
+#define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
+    __asm__ __volatile__("movl %0, %%ebx\n\t"                                  \
+                         "movl %%esp, %%eax\n\t"                               \
+                         "movl %%eax, (%%ebx)\n\t"                             \
+                         "movl %1, %%eax\n\t"                                  \
+                         "movl %%eax, %%esp\n\t"                               \
+                         :                                                     \
+                         : "r"(__OLD_SP), "r"(__STACK_P)                       \
+                         : "%eax", "%ebx")
+
+#define mipos_set_sp(__OLD_SP)                                                 \
+    __asm__ __volatile__("movl %0, %%eax\n\t"                                  \
+                         "movl %%eax, %%esp\n\t"                               \
+                         :                                                     \
+                         : "r"(__OLD_SP)                                       \
+                         : "%eax")
+#endif
+
+#define mipos_save_context(_x) setjmp((unsigned int*)(_x))
+#define mipos_context_switch_to(_x) longjmp((unsigned int*)(_x), 1)
+#else
 #if defined(__x86_64__)
 #define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
     __asm__ __volatile__("movq " #__OLD_SP ", %rbx\n\t"                        \
@@ -132,8 +176,8 @@ extern mipos_reg_t mipos_get_sp();
     __asm__ __volatile__("movl " #__OLD_SP ", %eax\n\t"                        \
                          "movl %eax, %esp\n\t")
 #endif
-
-extern unsigned int mipos_get_sp();
+#endif
+extern mipos_reg_t mipos_get_sp();
 
 #else
 #error "Platform or compiler not supported"
@@ -149,9 +193,11 @@ extern unsigned int mipos_get_sp();
     if (_C)                                                                    \
         ;
 
+/* ------------------------------------------------------------------------- */
+
 #define STACK_UNIT 4096
 
-#if (defined(_WIN32))
+#if defined(_WIN32)
 #define mipos_bsp_notify_scheduler_epoch()                                     \
     do {                                                                       \
         static unsigned long long old_tc = 0;                                  \
@@ -159,8 +205,22 @@ extern unsigned int mipos_get_sp();
         if (old_tc)                                                            \
             mipos_update_rtc((uint32_t)(tc - old_tc));                         \
         old_tc = tc;                                                           \
-                                                                               \
     } while (0)
+
+#elif defined(__APPLE__)
+#define mipos_bsp_notify_scheduler_epoch()                                     \
+    do {                                                                       \
+        static uint64_t old_tc = 0;                                            \
+        uint64_t tc = mach_absolute_time();                                    \
+        mach_timebase_info_data_t info;                                        \
+        mach_timebase_info(&info);                                             \
+        tc *= info.numer;                                                      \
+        tc /= info.denom;                                                      \
+        if (old_tc)                                                            \
+            mipos_update_rtc((uint32_t)((tc - old_tc) / 1000000));             \
+        old_tc = tc;                                                           \
+    } while (0)
+
 #else
 #include <sys/time.h>
 #define mipos_bsp_notify_scheduler_epoch()                                     \
@@ -187,4 +247,4 @@ extern unsigned int mipos_get_sp();
 
 #define mipos_printf printf
 
-#endif // mipos_BSP_SIMU_H__
+#endif

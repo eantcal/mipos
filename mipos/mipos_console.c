@@ -225,7 +225,7 @@ static int recvr_task(task_param_t context)
                 }
             }
 
-            if ((c == (unsigned char)end_line_char)) {
+            if ((c == ((unsigned char)end_line_char))) {
                 char* cmd_str = (char*)rs232_rx_buf;
                 unsigned int cmd_len = rs232_rx_buf_idx;
                 char* argv[CONSOLE_MAX_ARGS_COUNT] = { 0 };
@@ -451,9 +451,9 @@ void mem_dump(const int b[], unsigned int buf_len, int mode)
         for (col = 0; col < 4; col++) {
             unsigned int i = buf_index + col;
 
-            if (i >= buf_len)
+            if (i >= buf_len) {
                 mipos_puts("            ");
-            else {
+            } else {
                 char c[4];
                 c[mode ? 0 : 3] = (b[i] >> 24);
                 c[mode ? 1 : 2] = (b[i] >> 16);

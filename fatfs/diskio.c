@@ -57,7 +57,7 @@ DRESULT disk_write(BYTE pdrv, /* Physical drive nmuber to identify the drive */
 )
 {
     return mipos_disk_write(
-      (mipos_pdrv_t)pdrv, buff, (mipos_sec_t)sector, (mipos_sec_t)count);
+      (mipos_pdrv_t)pdrv, (const char*) buff, (mipos_sec_t)sector, (mipos_sec_t)count);
 }
 
 /*-----------------------------------------------------------------------*/

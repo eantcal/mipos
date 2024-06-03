@@ -332,18 +332,18 @@ scheduler:
                 mipos_init_cs();
                 mipos_enter_cs();
 
-                if (p_task->signal_waiting & SIGALM) {
+                if (p_task->signal_waiting & MIPOS_SIGALM) {
                     if (p_task->timer_tick_count > 0) {
                         --p_task->timer_tick_count;
                     } else {
-                        p_task->signal_pending |= SIGALM;
+                        p_task->signal_pending |= MIPOS_SIGALM;
                     }
                 }
 
-                if (p_task->signal_waiting & SIGTMR) {
+                if (p_task->signal_waiting & MIPOS_SIGTMR) {
                     if (p_task->rtc_timeout &&
                         mipos_kernel_env.rtc_counter >= p_task->rtc_timeout) {
-                        p_task->signal_pending |= SIGTMR;
+                        p_task->signal_pending |= MIPOS_SIGTMR;
                         p_task->rtc_timeout = 0;
                     }
                 }
