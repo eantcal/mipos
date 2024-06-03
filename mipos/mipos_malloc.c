@@ -488,7 +488,7 @@ void mipos_mm_dbg_print(mipos_mm_t* _this)
 #endif
     while (mbd) {
 
-
+#ifdef MIPOS64
         mipos_printf("|%8i| %p |%8zu| %p | %p | %p |\n",
                      i++,
                      (char*)mdesc_get_data_addr(mbd) - sizeof(mipos_mdesc_t),
@@ -496,6 +496,15 @@ void mipos_mm_dbg_print(mipos_mm_t* _this)
                      (char*)mdesc_get_data_addr(mbd) + mdesc_getsize(mbd),
                      mdesc_next(mbd),
                      mdesc_prev(mbd));
+#else
+        mipos_printf("|%8i| %08x |%8i| %08x | %08x | %08x |\n",
+                     i++,
+                     (int)((char*)mdesc_get_data_addr(mbd) - sizeof(mipos_mdesc_t)),
+                     (int)mdesc_getsize(mbd),
+                     (int)((char*)mdesc_get_data_addr(mbd) + mdesc_getsize(mbd)),
+                     (int)mdesc_next(mbd),
+                     (int)mdesc_prev(mbd));
+#endif
 
         tot_part_mem += mdesc_getsize(mbd);
         mbd = mdesc_next(mbd);
@@ -552,14 +561,13 @@ void mipos_mm_dbg_print(mipos_mm_t* _this)
                      mdesc_next(mbd),
                      mdesc_prev(mbd));
 #else
-        mipos_printf(
-          "|%8i| %08x |%8i| %08x | %08x | %08x |\n",
-          i++,
-          (int)((char*)mdesc_get_data_addr(mbd) - sizeof(mipos_mdesc_t)),
-          (int)mdesc_getsize(mbd),
-          (int)((char*)mdesc_get_data_addr(mbd) + mdesc_getsize(mbd)),
-          (int)mdesc_next(mbd),
-          (int)mdesc_prev(mbd));
+        mipos_printf("|%8i| %08x |%8i| %08x | %08x | %08x |\n",
+                     i++,
+                     (int)((char*)mdesc_get_data_addr(mbd) - sizeof(mipos_mdesc_t)),
+                     (int)mdesc_getsize(mbd),
+                     (int)((char*)mdesc_get_data_addr(mbd) + mdesc_getsize(mbd)),
+                     (int)mdesc_next(mbd),
+                     (int)mdesc_prev(mbd));
 #endif
         tot_part_mem += mdesc_getsize(mbd);
         mbd = mdesc_next(mbd);
