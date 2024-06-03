@@ -5,6 +5,7 @@
 /build
 /mipos/Debug
 /examples/simu/helloworld/Debug
+/examples/build
 /examples/Debug
 /examples/.vs/mipos_examples
 /examples/simu/console/x64/Debug

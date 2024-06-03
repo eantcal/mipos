@@ -175,6 +175,10 @@ extern mipos_reg_t mipos_get_sp();
 #define mipos_set_sp(__OLD_SP)                                                 \
     __asm__ __volatile__("movl " #__OLD_SP ", %eax\n\t"                        \
                          "movl %eax, %esp\n\t")
+
+#define mipos_save_context(_x) setjmp((unsigned int*)_x)
+#define mipos_context_switch_to(_x) longjmp((unsigned int*)_x, 1)
+
 #endif
 #endif
 extern mipos_reg_t mipos_get_sp();

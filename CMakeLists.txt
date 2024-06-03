@@ -6,12 +6,13 @@ if(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(COMPILER_FLAGS "-fno-common")
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(APPLE)
 # Set the C flags
 set(CMAKE_C_FLAGS 
   "-v -g -Wno-incompatible-pointer-types -Wno-pointer-sign \
-  -fno-common -Wparentheses-equality\
+  -fno-common -Wparentheses-equality \
   -DMIPOS_TARGET_SIMU \
   -DENABLE_MIPOS_FS \
   -DENABLE_MIPOS_STDIO \
@@ -25,8 +26,8 @@ set(LINKER_FLAGS "-Wl,--warn-common")
 
 else()
 set(CMAKE_C_FLAGS 
-  "-g -m32 -Wno-incompatible-pointer-types -Wno-pointer-sign \
-  -fno-common -Wparentheses-equality\
+  "-g -m32 -fPIC -fPIE -Wno-incompatible-pointer-types -Wno-pointer-sign \
+  -fno-common \
   -DMIPOS_TARGET_SIMU \
   -DENABLE_MIPOS_FS \
   -DENABLE_MIPOS_STDIO \
@@ -53,6 +54,7 @@ add_library(mipos STATIC
   mipos/mipos_diskio.c 
   mipos/arch/simu/mipos_bsp_simu.c
 )
+set_target_properties(mipos PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # FATFS library
 add_library(fatfs STATIC
@@ -61,6 +63,7 @@ add_library(fatfs STATIC
   fatfs/ffsystem.c
   fatfs/ffunicode.c
 )
+set_target_properties(fatfs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Add executables and link libraries
 foreach(example IN ITEMS helloworld malloc timers multitask console filesystem fatfs)
@@ -75,7 +78,7 @@ target_link_libraries(example-fatfs fatfs)
 add_custom_command(
   TARGET example-fatfs POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_SOURCE_DIR}/simu/fatfs/disk.img
+    ${CMAKE_SOURCE_DIR}/examples/simu/fatfs/disk.img
     ${CMAKE_CURRENT_BINARY_DIR}/disk.img
 )
 
