@@ -391,8 +391,7 @@ dispatcher:
     KERNEL_DBG_DELAY;
 
     // Before a task execution, save current scheduler state
-    if (mipos_save_context(
-          (uint8_t*)mipos_kernel_env.scheduler_registers_state)) {
+    if (mipos_save_context(mipos_kernel_env.scheduler_registers_state)) {
         // Resuming kernel context, go to the scheduler
         goto scheduler;
     }
@@ -403,7 +402,7 @@ dispatcher:
         p_task->u_flags.flags.wkup = 0;
 
         // Resume a suspended task
-        mipos_context_switch_to((uint8_t*)p_task->reg_state);
+        mipos_context_switch_to(p_task->reg_state);
     } else {
         mipos_init_cs();
 
@@ -427,9 +426,16 @@ dispatcher:
         top_of_the_stack =
           (void*)(((mipos_reg_t)top_of_the_stack) & ~((mipos_reg_t)0xF));
 #endif
-        mipos_replace_sp(saved_stack_pointer, top_of_the_stack);
-
         mipos_leave_cs();
+
+#ifdef MIPOS64
+        p_task->task_ret_value =
+          mipos_start_task_on_stack(saved_stack_pointer,
+                                    top_of_the_stack,
+                                    p_task->entry_point,
+                                    p_task->param);
+#else
+        mipos_replace_sp(saved_stack_pointer, top_of_the_stack);
 
         // Run the task (first time)
         p_task->task_ret_value = p_task->entry_point(p_task->param);
@@ -443,6 +449,7 @@ dispatcher:
         mipos_set_sp(saved_stack_pointer);
 
         mipos_leave_cs();
+#endif
     }
 
     goto scheduler;

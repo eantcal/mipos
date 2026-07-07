@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DMIPOS_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  linux-x86:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install multilib toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+      - name: Configure
+        run: cmake -S . -B build -DMIPOS_ARCH=x86 -DMIPOS_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, Win32]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -A ${{ matrix.arch }} -DMIPOS_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build --config Release --parallel
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+  macos-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DMIPOS_BUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  qemu-arm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ARM toolchain and QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi qemu-system-arm
+      - name: Configure
+        run: >
+          cmake -S . -B build-qemu-arm
+          -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-toolchain.cmake
+          -DMIPOS_TARGET_QEMU_ARM=ON
+      - name: Build
+        run: cmake --build build-qemu-arm --parallel
+      - name: Boot smoke test
+        run: |
+          timeout --preserve-status 15 qemu-system-arm -M lm3s6965evb \
+            -kernel build-qemu-arm/mipos-arm-qemu.elf -nographic \
+            < /dev/null > qemu-output.txt || true
+          cat qemu-output.txt
+          grep -q "mipOS ARM/QEMU port booting" qemu-output.txt
+          grep -q "root task running" qemu-output.txt
+          grep -q "tick: 2" qemu-output.txt
+      - name: Console smoke test
+        run: |
+          timeout --preserve-status 10 qemu-system-arm -M lm3s6965evb \
+            -kernel build-qemu-arm/mipos-arm-qemu-console.elf -nographic \
+            < /dev/null > console-output.txt || true
+          cat console-output.txt
+          grep -q "mipos_console" console-output.txt
+          grep -q "mipOS>" console-output.txt
+      - name: Filesystem smoke test
+        run: |
+          timeout --preserve-status 10 qemu-system-arm -M lm3s6965evb \
+            -kernel build-qemu-arm/mipos-arm-qemu-filesystem.elf -nographic \
+            < /dev/null > filesystem-output.txt || true
+          cat filesystem-output.txt
+          grep -q "mipOS tiny filesystem demo" filesystem-output.txt
+          grep -q "test1" filesystem-output.txt
+          grep -q "0123456789" filesystem-output.txt

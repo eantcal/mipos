@@ -184,7 +184,7 @@ static void mark_cluster_last(mipos_tfs_t* fs_ptr, mipos_tfs_cluster_t cluster)
 
 /* ------------------------------------------------------------------------- */
 
-inline void mark_cluster_free(mipos_tfs_t* fs_ptr, mipos_tfs_cluster_t cluster)
+static inline void mark_cluster_free(mipos_tfs_t* fs_ptr, mipos_tfs_cluster_t cluster)
 {
     set_cluster_val(fs_ptr, cluster, mipos_tfs_FREE_CLUSTER);
 }
@@ -192,7 +192,7 @@ inline void mark_cluster_free(mipos_tfs_t* fs_ptr, mipos_tfs_cluster_t cluster)
 
 /* ------------------------------------------------------------------------- */
 
-inline void mark_cluster_reserved(mipos_tfs_t* fs_ptr,
+static inline void mark_cluster_reserved(mipos_tfs_t* fs_ptr,
                                   mipos_tfs_cluster_t cluster)
 {
     set_cluster_val(fs_ptr, cluster, mipos_tfs_RESERVED_CLUSTER);

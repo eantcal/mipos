@@ -16,7 +16,10 @@
 #include <ctype.h>
 #include <setjmp.h>
 #include <stdint.h>
+
+#if !defined(_WIN32)
 #include <unistd.h>
+#endif
 
 #ifdef __APPLE__
 #include <mach/mach_time.h>
@@ -78,13 +81,17 @@ typedef uintptr_t
 #pragma warning(disable : 4313)
 
 #if defined(_M_X64) || defined(__x86_64__)
-extern void mipos_replace_sp(void** old_sp, void* new_sp);
-extern void mipos_set_sp(void* new_sp);
 extern mipos_reg_t mipos_get_sp();
 extern int mipos_save_context64(void* buffer);
 extern void mipos_context_switch64(void* buffer, int value);
+extern int mipos_start_task64(void** old_sp,
+                              void* new_sp,
+                              task_entry_point_t entry_point,
+                              task_param_t param);
 #define mipos_save_context(_x) mipos_save_context64((unsigned int*)_x)
 #define mipos_context_switch_to(_x) mipos_context_switch64((unsigned int*)_x, 1)
+#define mipos_start_task_on_stack(_OLD_SP, _STACK_P, _ENTRY, _PARAM)           \
+    mipos_start_task64((_OLD_SP), (_STACK_P), (_ENTRY), (_PARAM))
 #else
 #define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
     __asm { mov ebx, [__OLD_SP] }                                                 \
@@ -113,81 +120,48 @@ extern mipos_reg_t mipos_get_sp();
 
 #elif defined(__GNUC__)
 
-#ifdef __APPLE__
-#if defined(__x86_64__)
-#define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
-    __asm__ __volatile__("movq %0, %%rbx\n\t"                                  \
-                         "movq %%rsp, %%rax\n\t"                               \
-                         "movq %%rax, (%%rbx)\n\t"                             \
-                         "movq %1, %%rax\n\t"                                  \
-                         "movq %%rax, %%rsp\n\t"                               \
-                         :                                                     \
-                         : "r"(__OLD_SP), "r"(__STACK_P)                       \
-                         : "%rax", "%rbx")
-
-#define mipos_set_sp(__OLD_SP)                                                 \
-    __asm__ __volatile__("movq %0, %%rax\n\t"                                  \
-                         "movq %%rax, %%rsp\n\t"                               \
-                         :                                                     \
-                         : "r"(__OLD_SP)                                       \
-                         : "%rax")
-#else
-#define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
-    __asm__ __volatile__("movl %0, %%ebx\n\t"                                  \
-                         "movl %%esp, %%eax\n\t"                               \
-                         "movl %%eax, (%%ebx)\n\t"                             \
-                         "movl %1, %%eax\n\t"                                  \
-                         "movl %%eax, %%esp\n\t"                               \
-                         :                                                     \
-                         : "r"(__OLD_SP), "r"(__STACK_P)                       \
-                         : "%eax", "%ebx")
-
-#define mipos_set_sp(__OLD_SP)                                                 \
-    __asm__ __volatile__("movl %0, %%eax\n\t"                                  \
-                         "movl %%eax, %%esp\n\t"                               \
-                         :                                                     \
-                         : "r"(__OLD_SP)                                       \
-                         : "%eax")
-#endif
-
-#define mipos_save_context(_x) setjmp((unsigned int*)(_x))
-#define mipos_context_switch_to(_x) longjmp((unsigned int*)(_x), 1)
-#else
-#if defined(__x86_64__)
-#define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
-    __asm__ __volatile__("movq " #__OLD_SP ", %rbx\n\t"                        \
-                         "movq %rsp, %rax\n\t"                                 \
-                         "movq %rax, (%rbx)\n\t"                               \
-                         "movq " #__STACK_P ", %rax\n\t"                       \
-                         "movq %rax, %rsp\n\t")
-
-#define mipos_set_sp(__OLD_SP)                                                 \
-    __asm__ __volatile__("movq " #__OLD_SP ", %rax\n\t"                        \
-                         "movq %rax, %rsp\n\t")
-#else
-#define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
-    __asm__ __volatile__("movl " #__OLD_SP ", %ebx\n\t"                        \
-                         "movl %esp, %eax\n\t"                                 \
-                         "movl %eax, (%ebx)\n\t"                               \
-                         "movl " #__STACK_P ", %eax\n\t"                       \
-                         "movl %eax, %esp\n\t")
-
-#define mipos_set_sp(__OLD_SP)                                                 \
-    __asm__ __volatile__("movl " #__OLD_SP ", %eax\n\t"                        \
-                         "movl %eax, %esp\n\t")
-
-#define mipos_save_context(_x) setjmp((unsigned int*)_x)
-#define mipos_context_switch_to(_x) longjmp((unsigned int*)_x, 1)
-
-#endif
-#endif
+#if defined(__x86_64__) || defined(__aarch64__)
 extern mipos_reg_t mipos_get_sp();
+extern int mipos_start_task_gnu(void** old_sp,
+                                void* new_sp,
+                                task_entry_point_t entry_point,
+                                task_param_t param);
+#define mipos_save_context(_x) setjmp(_x)
+#define mipos_context_switch_to(_x) longjmp((_x), 1)
+#define mipos_start_task_on_stack(_OLD_SP, _STACK_P, _ENTRY, _PARAM)           \
+    mipos_start_task_gnu((_OLD_SP), (_STACK_P), (_ENTRY), (_PARAM))
+
+#elif defined(__i386__) || defined(__i386)
+extern mipos_reg_t mipos_get_sp();
+#define mipos_replace_sp(__OLD_SP, __STACK_P)                                  \
+    do {                                                                       \
+        void** __old_sp_ptr = (void**)(__OLD_SP);                              \
+        void* __new_sp = (__STACK_P);                                          \
+        __asm__ __volatile__("movl %%esp, (%0)\n\t"                            \
+                             "movl %1, %%esp\n\t"                             \
+                             :                                                 \
+                             : "r"(__old_sp_ptr), "r"(__new_sp)               \
+                             : "memory");                                      \
+    } while (0)
+
+#define mipos_set_sp(__OLD_SP)                                                 \
+    do {                                                                       \
+        void* __old_sp = *(void**)(__OLD_SP);                                  \
+        __asm__ __volatile__("movl %0, %%esp\n\t"                              \
+                             :                                                 \
+                             : "r"(__old_sp)                                  \
+                             : "memory");                                      \
+    } while (0)
+
+#define mipos_save_context(_x) setjmp(_x)
+#define mipos_context_switch_to(_x) longjmp((_x), 1)
+#else
+#error "GNU simulator target supports only x86, x64 and AArch64"
+#endif
 
 #else
 #error "Platform or compiler not supported"
 #endif
-
-#define inline
 
 #define mipos_init_cs()
 #define mipos_enter_cs()

@@ -74,49 +74,49 @@ static void mdesc_link_detach(mipos_mdesc_t* _this)
 
 /* ------------------------------------------------------------------------- */
 
-inline void mdesc_setnext(mipos_mdesc_t* _this, mipos_mdesc_t* block)
+static inline void mdesc_setnext(mipos_mdesc_t* _this, mipos_mdesc_t* block)
 {
     _this->_next = block;
 }
 
 /* ------------------------------------------------------------------------- */
 
-inline void mdesc_setprev(mipos_mdesc_t* _this, mipos_mdesc_t* block)
+static inline void mdesc_setprev(mipos_mdesc_t* _this, mipos_mdesc_t* block)
 {
     _this->_prev = block;
 }
 
 /* ------------------------------------------------------------------------- */
 
-inline void mdesc_setsize(mipos_mdesc_t* _this, size_t blockSize)
+static inline void mdesc_setsize(mipos_mdesc_t* _this, size_t blockSize)
 {
     _this->_block_size = blockSize;
 }
 
 /* ------------------------------------------------------------------------- */
 
-inline size_t mdesc_getsize(mipos_mdesc_t* _this)
+static inline size_t mdesc_getsize(mipos_mdesc_t* _this)
 {
     return _this->_block_size;
 }
 
 /* ------------------------------------------------------------------------- */
 
-inline mipos_mdesc_t* mdesc_next(mipos_mdesc_t* _this)
+static inline mipos_mdesc_t* mdesc_next(mipos_mdesc_t* _this)
 {
     return _this->_next;
 }
 
 /* ------------------------------------------------------------------------- */
 
-inline mipos_mdesc_t* mdesc_prev(mipos_mdesc_t* _this)
+static inline mipos_mdesc_t* mdesc_prev(mipos_mdesc_t* _this)
 {
     return _this->_prev;
 }
 
 /* ------------------------------------------------------------------------- */
 
-inline void mdesc_isolate(mipos_mdesc_t* _this)
+static inline void mdesc_isolate(mipos_mdesc_t* _this)
 {
     _this->_next = 0;
     _this->_prev = 0;
@@ -124,7 +124,7 @@ inline void mdesc_isolate(mipos_mdesc_t* _this)
 
 /* ------------------------------------------------------------------------- */
 
-inline void mdesc_init(mipos_mdesc_t* _this, size_t size)
+static inline void mdesc_init(mipos_mdesc_t* _this, size_t size)
 {
     mdesc_setsize(_this, size);
     mdesc_isolate(_this);
@@ -132,7 +132,7 @@ inline void mdesc_init(mipos_mdesc_t* _this, size_t size)
 
 /* ------------------------------------------------------------------------- */
 
-inline void* mdesc_get_data_addr(mipos_mdesc_t* _this)
+static inline void* mdesc_get_data_addr(mipos_mdesc_t* _this)
 {
     return (void*)(_this + 1);
 }
@@ -157,7 +157,7 @@ static mipos_mdesc_t* mdesc_merge(mipos_mdesc_t* mbd1, mipos_mdesc_t* mbd2)
 
 /* ------------------------------------------------------------------------- */
 
-inline mipos_mdesc_t* mdesc_get_bd_addr(void* ptr)
+static inline mipos_mdesc_t* mdesc_get_bd_addr(void* ptr)
 {
     return (mipos_mdesc_t*)ptr - 1;
 }
@@ -220,7 +220,7 @@ mipos_mdesc_t* mm_find_used(mipos_mm_t* _this, void* ptr)
 
 /* ------------------------------------------------------------------------- */
 
-inline int mipos_mm_is_in(mipos_mm_t* _this, void* ptr)
+int mipos_mm_is_in(mipos_mm_t* _this, void* ptr)
 {
     return mm_find_used(_this, ptr) != 0;
 }

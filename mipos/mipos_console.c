@@ -225,7 +225,7 @@ static int recvr_task(task_param_t context)
                 }
             }
 
-            if ((c == ((unsigned char)end_line_char))) {
+            if (c == (unsigned char)end_line_char) {
                 char* cmd_str = (char*)rs232_rx_buf;
                 unsigned int cmd_len = rs232_rx_buf_idx;
                 char* argv[CONSOLE_MAX_ARGS_COUNT] = { 0 };
@@ -397,7 +397,7 @@ void mipos_console_init(const mipos_console_init_t* config)
 
 /* ------------------------------------------------------------------------- */
 
-inline const char* mipos_dbg_describe_state(int st)
+static inline const char* mipos_dbg_describe_state(int st)
 {
     if (st & TASK_FROZEN) {
         return "frozen";

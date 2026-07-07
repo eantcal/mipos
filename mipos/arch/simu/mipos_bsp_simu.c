@@ -13,6 +13,7 @@
 #include "mipos_kernel.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 
 /* ------------------------------------------------------------------------- */
@@ -37,7 +38,7 @@
 
 // Check GCC
 #if __GNUC__
-#if __x86_64__ || __ppc64__
+#if __x86_64__ || __ppc64__ || __aarch64__
 #define MIPOS64
 #else
 #define MIPOS32
@@ -90,7 +91,7 @@ static int _peek_input(void)
 
     return 0;
 }
-#elif defined(__APPLE__)
+#else // POSIX (Linux, macOS, ...)
 #include <fcntl.h>
 #include <stdio.h>
 #include <termios.h>
@@ -101,8 +102,10 @@ static int _peek_input(void)
 static int _peek_input(void)
 {
     static int termios_cnf = 0;
-    static struct termios oldt, newt = { 0 };
-    int ch = 0, oldf = 0;
+    static int oldf = 0;
+    static struct termios oldt;
+    struct termios newt;
+    int ch = 0;
 
     if (!termios_cnf) {
         termios_cnf = 1;
@@ -124,75 +127,18 @@ static int _peek_input(void)
         return 0;
     }
 
-    switch (ch) {
-        case 0xA:
-            return 0xD;
-        case 0x7f:
-        case 0x27:
-            return '\b';
-        case 3: // CTRL+C
-            tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-            fcntl(STDIN_FILENO, F_SETFL, oldf);
-            exit(0);
-            return 0;
-    }
-
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     fcntl(STDIN_FILENO, F_SETFL, oldf);
     termios_cnf = 0;
-
-    return ch;
-}
-#else
-#include <fcntl.h>
-#include <stdio.h>
-#include <termios.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-
-static int _peek_input(void)
-{
-    static int termios_cnf = 0;
-    static struct termios oldt, newt = { 0 };
-    int ch = 0, oldf = 0;
-
-    if (!termios_cnf) {
-        termios_cnf = 1;
-
-        oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-        fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-
-        tcgetattr(STDIN_FILENO, &oldt);
-        memcpy(&newt, &oldt, sizeof(struct termios));
-
-        newt.c_lflag &= ~(ICANON | ECHO);
-
-        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    }
-
-    ch = getchar();
-
-    if (ch == EOF) {
-        return 0;
-    }
 
     switch (ch) {
         case 0xA:
             return 0xD;
         case 0x7f:
-        case 0x27:
             return '\b';
         case 3: // CTRL+C
-            tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-            fcntl(STDIN_FILENO, F_SETFL, oldf);
             exit(0);
-            return 0;
     }
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-    termios_cnf = 0;
 
     return ch;
 }
@@ -203,7 +149,7 @@ static int _peek_input(void)
 
 void mipos_bsp_rs232_putc(unsigned char c)
 {
-    putc(c, stdout);
+    fputc(c, stdout);
     fflush(stdout);
 }
 
@@ -228,22 +174,3 @@ unsigned int mipos_bsp_rs232_recv_byte(unsigned char* key)
 }
 
 
-/* ------------------------------------------------------------------------- */
-
-#if defined(__GNUC__) && defined(__APPLE__)
-
-#if defined(__x86_64__)
-mipos_reg_t mipos_get_sp() {
-    mipos_reg_t sp;
-    __asm__ __volatile__("movq %%rsp, %0" : "=r"(sp));
-    return sp;
-}
-#else
-mipos_reg_t mipos_get_sp() {
-    mipos_reg_t sp;
-    __asm__ __volatile__("movl %%esp, %0" : "=r"(sp));
-    return sp;
-}
-#endif
-
-#endif

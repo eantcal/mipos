@@ -24,7 +24,7 @@
 
 // Check GCC
 #if __GNUC__
-#if __x86_64__ || __ppc64__
+#if __x86_64__ || __ppc64__ || __aarch64__
 #define MIPOS64
 #else
 #define MIPOS32
@@ -202,7 +202,7 @@ typedef unsigned long mipos_timer_intvl_t;
 
 /* ------------------------------------------------------------------------- */
 
-typedef struct __timer_t
+typedef struct mipos_timer_desc_t
 {
     mipos_timer_handler_t handler_on_expire_cbk; //!< on-expire callback
     mipos_timer_handler_t handler_on_cancel_cbk; //!< on-cancel callback

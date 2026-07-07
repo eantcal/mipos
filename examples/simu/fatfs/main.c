@@ -262,7 +262,7 @@ int exec_cmd_ls(int argc, char* argv[])
 static int exec_cmd_cat(int argc, char* argv[])
 {
     int res = 0;
-    size_t bread = 0;
+    UINT bread = 0;
     FIL file;
     char buf[64] = { 0 };
 

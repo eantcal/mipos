@@ -9,80 +9,97 @@ mipos_get_sp PROC
     ret           ; Return, RAX will hold the return value
 mipos_get_sp ENDP
 
-; Function to replace the stack pointer and store the old one
+; Calls a task entry point using a newly supplied stack.
 ; Parameters:
-; rcx = old_sp (address where old stack pointer will be stored, void**)
-; rdx = new_sp (new stack pointer value, void*)
-mipos_replace_sp PROC
-    mov rax, rsp ; Store current rsp at that address
-    add rax, 8   ; Calculate caller rsp
-    mov [rcx], rax ; Store caller rsp at that address
-    mov rsp, rdx   ; Update rsp to the new value provided in new_sp
-     
-    ; Instead of 'ret', manually jump to the address stored at the top of the old stack
-    mov rax, [rax-8] ; Indirect jump to caller
-    jmp rax
-mipos_replace_sp ENDP
+; rcx = old_sp (address where the scheduler stack pointer will be stored)
+; rdx = new_sp (top of the task stack)
+; r8  = task entry point
+; r9  = task parameter
+mipos_start_task64 PROC
+    push rbx
+    mov rbx, rcx
+    mov [rbx], rsp
 
-; Function to set the stack pointer from a provided value
-; Parameter:
-; rcx = new_sp (new stack pointer value, void*)
-mipos_set_sp PROC
-    mov rax, rsp
-    mov rsp, rcx   ; Update rsp directly from new_sp
-    mov rax, [rax]
-    jmp rax
-mipos_set_sp ENDP
+    mov rsp, rdx
+    and rsp, -16
 
-.code
-; Define setjmp equivalent in Windows x64 ABI
-; RCX points to the buffer
+    ; Windows x64 requires the caller to reserve 32 bytes of shadow space.
+    sub rsp, 32
+    mov rcx, r9
+    call r8
+
+    mov rsp, [rbx]
+    pop rbx
+    ret
+mipos_start_task64 ENDP
+
+; Define setjmp equivalent in Windows x64 ABI.
+; RCX points to the buffer (a 256-byte jmp_buf).
+; Buffer layout:
+;   [0..56]   rbx, rbp, rsi, rdi, r12, r13, r14, r15
+;   [64]      caller rsp
+;   [72]      return address (rip)
+;   [80]      mxcsr
+;   [96..240] xmm6..xmm15 (callee-saved in the Windows x64 ABI)
 mipos_save_context64 PROC
-    mov [rcx], rax
-    mov [rcx + 8], rbx
-    mov [rcx + 16], rcx
-    mov [rcx + 24], rdx
-    mov [rcx + 32], rsi
-    mov [rcx + 40], rdi
-    mov [rcx + 48], rbp
-    mov [rcx + 56], rsp
-    mov [rcx + 64], r8
-    mov [rcx + 72], r9
-    mov [rcx + 80], r10
-    mov [rcx + 88], r11
-    mov [rcx + 96], r12
-    mov [rcx + 104], r13
-    mov [rcx + 112], r14
-    mov [rcx + 120], r15
-    mov rax, rsp
-    mov rax, [rax]
-    mov [rcx + 128], rax
-    xor rax, rax    ; Convention: setjmp returns 0 on initial call
+    mov [rcx], rbx
+    mov [rcx + 8], rbp
+    mov [rcx + 16], rsi
+    mov [rcx + 24], rdi
+    mov [rcx + 32], r12
+    mov [rcx + 40], r13
+    mov [rcx + 48], r14
+    mov [rcx + 56], r15
+    lea rax, [rsp + 8]
+    mov [rcx + 64], rax
+    mov rax, [rsp]
+    mov [rcx + 72], rax
+    stmxcsr dword ptr [rcx + 80]
+    movdqu xmmword ptr [rcx + 96], xmm6
+    movdqu xmmword ptr [rcx + 112], xmm7
+    movdqu xmmword ptr [rcx + 128], xmm8
+    movdqu xmmword ptr [rcx + 144], xmm9
+    movdqu xmmword ptr [rcx + 160], xmm10
+    movdqu xmmword ptr [rcx + 176], xmm11
+    movdqu xmmword ptr [rcx + 192], xmm12
+    movdqu xmmword ptr [rcx + 208], xmm13
+    movdqu xmmword ptr [rcx + 224], xmm14
+    movdqu xmmword ptr [rcx + 240], xmm15
+    xor rax, rax
     ret
 mipos_save_context64 ENDP
 
-; Define longjmp equivalent in Windows x64 ABI
+; Define longjmp equivalent in Windows x64 ABI.
 ; RCX points to the buffer, RDX is the value to return from setjmp
 mipos_context_switch64 PROC
-    mov rax, [rcx]        ; Restore all registers
-    mov rbx, [rcx + 8]
-    mov rcx, [rcx + 16]
-    mov rsi, [rcx + 32]
-    mov rdi, [rcx + 40]
-    mov rbp, [rcx + 48]
-    mov rsp, [rcx + 56]
-    mov r8, [rcx + 64]
-    mov r9, [rcx + 72]
-    mov r10, [rcx + 80]
-    mov r11, [rcx + 88]
-    mov r12, [rcx + 96]
-    mov r13, [rcx + 104]
-    mov r14, [rcx + 112]
-    mov r15, [rcx + 120]
-    mov rax, rdx          ; Set return value as provided in RDX
-    mov rdx, [rcx + 24]
-    mov rcx, [rcx + 128]       ; Jump to stored RIP
-    jmp rcx
+    mov r10, rcx
+    mov rbx, [r10]
+    mov rbp, [r10 + 8]
+    mov rsi, [r10 + 16]
+    mov rdi, [r10 + 24]
+    mov r12, [r10 + 32]
+    mov r13, [r10 + 40]
+    mov r14, [r10 + 48]
+    mov r15, [r10 + 56]
+    mov rsp, [r10 + 64]
+    mov r11, [r10 + 72]
+    ldmxcsr dword ptr [r10 + 80]
+    movdqu xmm6, xmmword ptr [r10 + 96]
+    movdqu xmm7, xmmword ptr [r10 + 112]
+    movdqu xmm8, xmmword ptr [r10 + 128]
+    movdqu xmm9, xmmword ptr [r10 + 144]
+    movdqu xmm10, xmmword ptr [r10 + 160]
+    movdqu xmm11, xmmword ptr [r10 + 176]
+    movdqu xmm12, xmmword ptr [r10 + 192]
+    movdqu xmm13, xmmword ptr [r10 + 208]
+    movdqu xmm14, xmmword ptr [r10 + 224]
+    movdqu xmm15, xmmword ptr [r10 + 240]
+    mov rax, rdx
+    test rax, rax
+    jne mipos_context_switch64_jump
+    mov rax, 1
+mipos_context_switch64_jump:
+    jmp r11
 mipos_context_switch64 ENDP
 
 END
