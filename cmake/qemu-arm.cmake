@@ -48,6 +48,7 @@ function(mipos_qemu_arm_firmware name)
     target_include_directories(${name} PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/mipos
         ${CMAKE_CURRENT_SOURCE_DIR}/mipos/arch/qemu-arm
+        ${CMAKE_CURRENT_SOURCE_DIR}/fatfs
     )
 
     target_compile_definitions(${name} PRIVATE
@@ -110,4 +111,20 @@ mipos_qemu_arm_firmware(mipos-arm-qemu-filesystem
     DEFINITIONS
         ENABLE_MIPOS_CONSOLE
         ENABLE_MIPOS_FS
+)
+
+# FatFs firmware: host-file-backed block device via QEMU semihosting.
+mipos_qemu_arm_firmware(mipos-arm-qemu-fatfs
+    MAIN examples/qemu-arm/fatfs/main.c
+    SOURCES
+        mipos/mipos_console.c
+        mipos/mipos_diskio.c
+        mipos/arch/qemu-arm/mipos_qemu_semihosting.c
+        mipos/arch/qemu-arm/mipos_qemu_hostdisk.c
+        fatfs/diskio.c
+        fatfs/ff.c
+        fatfs/ffsystem.c
+        fatfs/ffunicode.c
+    DEFINITIONS
+        ENABLE_MIPOS_CONSOLE
 )

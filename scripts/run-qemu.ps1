@@ -3,6 +3,7 @@
 # Usage:
 #   .\scripts\run-qemu.ps1                 # filesystem demo (default)
 #   .\scripts\run-qemu.ps1 console         # interactive mipOS console (CLI)
+#   .\scripts\run-qemu.ps1 fatfs           # FatFs over host-backed disk image
 #   .\scripts\run-qemu.ps1 helloworld      # tick demo
 #   .\scripts\run-qemu.ps1 -Rebuild        # force a rebuild first
 #   .\scripts\run-qemu.ps1 -Gdb            # start halted with GDB server :1234
@@ -13,9 +14,11 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('filesystem', 'console', 'helloworld')]
+    [ValidateSet('filesystem', 'console', 'helloworld', 'fatfs')]
     [string]$Firmware = 'filesystem',
 
+    [string]$DiskImage,
+    [switch]$ResetDisk,
     [switch]$Rebuild,
     [switch]$Gdb,
     [switch]$Help
@@ -26,14 +29,17 @@ $ErrorActionPreference = 'Stop'
 if ($Help) {
     @'
 Usage:
-  .\scripts\run-qemu.ps1 [filesystem|console|helloworld] [-Rebuild] [-Gdb]
+  .\scripts\run-qemu.ps1 [filesystem|console|helloworld|fatfs] [-DiskImage <path>] [-ResetDisk] [-Rebuild] [-Gdb]
 
 Firmware:
   filesystem    interactive mipOS tiny filesystem demo (default)
   console       interactive mipOS console
   helloworld    boot demo that prints periodic ticks
+  fatfs         FatFs demo backed by build-qemu-arm\qemu-fatfs.img
 
 Options:
+  -DiskImage    source FAT image copied to qemu-fatfs.img when it is missing
+  -ResetDisk    overwrite qemu-fatfs.img from -DiskImage before launch
   -Rebuild      force CMake configure/build before launching QEMU
   -Gdb          start QEMU halted with a GDB server on :1234
 
@@ -48,9 +54,11 @@ $buildDir = Join-Path $repoRoot 'build-qemu-arm'
 $elfName = switch ($Firmware) {
     'filesystem' { 'mipos-arm-qemu-filesystem.elf' }
     'console' { 'mipos-arm-qemu-console.elf' }
+    'fatfs' { 'mipos-arm-qemu-fatfs.elf' }
     default { 'mipos-arm-qemu.elf' }
 }
 $elf = Join-Path $buildDir $elfName
+$qemuFatImage = Join-Path $buildDir 'qemu-fatfs.img'
 
 # --- locate qemu-system-arm ---------------------------------------------
 $qemu = Get-Command qemu-system-arm -ErrorAction SilentlyContinue
@@ -85,9 +93,27 @@ if ($Rebuild -or -not (Test-Path $elf)) {
     if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
 }
 
+if ($Firmware -eq 'fatfs') {
+    if (-not $DiskImage) {
+        $DiskImage = Join-Path $repoRoot 'examples\simu\fatfs\disk.img'
+    }
+
+    if (-not (Test-Path $DiskImage)) {
+        throw "FAT disk image not found: $DiskImage"
+    }
+
+    if ($ResetDisk -or -not (Test-Path $qemuFatImage)) {
+        New-Item -ItemType Directory -Force -Path $buildDir | Out-Null
+        Copy-Item -LiteralPath $DiskImage -Destination $qemuFatImage -Force
+    }
+}
+
 # --- run ------------------------------------------------------------------
 $qemuArgs = @('-M', 'lm3s6965evb', '-kernel', $elf, '-nographic',
               '-serial', 'mon:stdio')
+if ($Firmware -eq 'fatfs') {
+    $qemuArgs += @('-semihosting-config', 'enable=on,target=native')
+}
 if ($Gdb) {
     $qemuArgs += @('-S', '-s')
     Write-Host 'GDB server on :1234 (arm-none-eabi-gdb ' -NoNewline
@@ -96,4 +122,9 @@ if ($Gdb) {
 }
 
 Write-Host "Starting QEMU ($elfName) - quit with Ctrl-A x" -ForegroundColor Green
-& $qemu @qemuArgs
+Push-Location $(if ($Firmware -eq 'fatfs') { $buildDir } else { $repoRoot })
+try {
+    & $qemu @qemuArgs
+} finally {
+    Pop-Location
+}

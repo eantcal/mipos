@@ -16,7 +16,9 @@ to study. It can also run as a user-space simulator on Windows, Linux, and macOS
 
 The original design and source code were published in an article for the
 magazine Computer Programming, describing the internals of a portable and
-scalable kernel for resource-constrained microcontrollers.
+scalable kernel for resource-constrained microcontrollers. A modern, in-depth
+description of the kernel internals is available in
+[docs/mipos-internals.md](docs/mipos-internals.md).
 
 mipOS has been tested on Intel x86/x64 simulator targets, STM8, STM32, and
 ARM Cortex-M3 microcontroller families. The simulator also builds on ARM64
