@@ -14,6 +14,13 @@
 #include "mipos.h"
 #include "mipos_diskio.h"
 
+#if defined(_WIN32)
+#include <windows.h>
+#else
+#include <limits.h>
+#include <unistd.h>
+#endif
+
 /* ---------------------------------------------------------------------------
  */
 
@@ -27,8 +34,108 @@ static char ramdisk_fname[1024] = "disk.img" /* default name */;
 /* ---------------------------------------------------------------------------
  */
 
+static int file_exists(const char* path)
+{
+    FILE* f = fopen(path, "rb");
+
+    if (!f) {
+        return 0;
+    }
+
+    fclose(f);
+    return 1;
+}
+
+static void dirname_from_path(const char* path, char* dir, size_t dir_size)
+{
+    const char* slash = 0;
+    const char* p = path;
+
+    if (!path || !dir || dir_size == 0) {
+        return;
+    }
+
+    while (*p) {
+        if (*p == '/' || *p == '\\') {
+            slash = p;
+        }
+        ++p;
+    }
+
+    if (!slash) {
+        dir[0] = 0;
+        return;
+    }
+
+    {
+        size_t len = (size_t)(slash - path);
+        if (len >= dir_size) {
+            len = dir_size - 1;
+        }
+
+        memcpy(dir, path, len);
+        dir[len] = 0;
+    }
+}
+
+static int executable_dir(char* dir, size_t dir_size)
+{
+    char path[1024];
+
+    if (!dir || dir_size == 0) {
+        return 0;
+    }
+
+#if defined(_WIN32)
+    if (GetModuleFileNameA(NULL, path, sizeof(path)) == 0) {
+        return 0;
+    }
+#else
+    {
+        ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
+        if (len <= 0) {
+            return 0;
+        }
+        path[len] = 0;
+    }
+#endif
+
+    dirname_from_path(path, dir, dir_size);
+    return dir[0] != 0;
+}
+
+static void resolve_default_ramdisk_path(void)
+{
+    char dir[1024];
+    char path[1024];
+
+    if (strcmp(ramdisk_fname, "disk.img") != 0 || file_exists(ramdisk_fname)) {
+        return;
+    }
+
+    if (!executable_dir(dir, sizeof(dir))) {
+        return;
+    }
+
+    snprintf(path, sizeof(path), "%s%c%s", dir,
+#if defined(_WIN32)
+             '\\',
+#else
+             '/',
+#endif
+             "disk.img");
+
+    if (file_exists(path)) {
+        strncpy(ramdisk_fname, path, sizeof(ramdisk_fname) - 1);
+        ramdisk_fname[sizeof(ramdisk_fname) - 1] = 0;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+ */
+
 static FATFS g_fat_fs;
-static char root_stack[4 * 1024];
+static char root_stack[64 * 1024];
 static char g_curr_dir[1024] = "/";
 static volatile int _disk_status = MIPOS_DISK_STS_NOINIT;
 
@@ -66,10 +173,13 @@ static int ramdisk_init(mipos_pdrv_t pdrv)
         return MIPOS_DISK_RES_NOTRDY;
     }
 
+    resolve_default_ramdisk_path();
+
     // read from host (linux/window) filesystem a ramdisk image
     FILE* f = fopen(ramdisk_fname, "rb");
 
     if (!f) {
+        mipos_printf("disk image not found: %s\n", ramdisk_fname);
         return MIPOS_DISK_RES_NOTRDY;
     }
 

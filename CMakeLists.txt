@@ -165,6 +165,9 @@ if(MIPOS_BUILD_EXAMPLES)
 
     target_link_libraries(example-fatfs PRIVATE fatfs)
 
+    set_target_properties(example-fatfs PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:example-fatfs>")
+
     add_custom_command(
         TARGET example-fatfs POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
