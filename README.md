@@ -118,6 +118,8 @@ The current test targets cover:
 - mipOS malloc/free/realloc basics
 - cooperative multitasking: task creation, round-robin yielding, and task
   termination through the scheduler
+- optional lwIP Ethernet/IPv4 integration: ARP reply and ICMP echo reply over
+  a simulated link driver
 
 The test suite also runs in CI (GitHub Actions) on Linux x64/x86, Windows
 x64/Win32, and macOS ARM64. The macOS ARM64 job builds the project and runs
@@ -133,9 +135,27 @@ registered on that host architecture.
 - GoogleTest covers queues, memory pools, and malloc behavior.
 - `mipos_scheduler_smoke` exercises cooperative scheduling on supported
   simulator hosts: Linux x64/x86 and Windows x64/Win32.
+- Optional networking can be enabled with `-DMIPOS_NET_STACK=lwip`. The current
+  lwIP port is `NO_SYS=1`, IPv4/Ethernet only, and starts with ARP + ICMP.
 - macOS ARM64 support is currently build/unit-test coverage only for the
   simulator. Scheduler context switching on Apple Silicon needs a dedicated
   backend before scheduler examples or smoke tests can be considered supported.
+
+## Optional networking
+
+The default build does not include a TCP/IP stack. To enable the experimental
+lwIP port, configure with `MIPOS_NET_STACK=lwip`:
+
+```powershell
+cmake -S . -B build-vs-x64-lwip -G "Visual Studio 18 2026" -A x64 -DMIPOS_NET_STACK=lwip
+cmake --build build-vs-x64-lwip --config Release --target mipos_lwip_tests
+.\build-vs-x64-lwip\Release\mipos_lwip_tests.exe
+```
+
+CMake downloads lwIP 2.2.1 from the official Savannah release archive and
+builds only the subset needed by mipOS. The first driver model is an Ethernet
+`netif` adapter with receive injection and link-output callbacks; the initial
+coverage verifies ARP and ICMP echo reply behavior without requiring hardware.
 
 ## Examples
 
@@ -178,7 +198,7 @@ cmake -S . -B build-qemu-arm \
 cmake --build build-qemu-arm --parallel
 ```
 
-This produces three firmwares (each with `.elf`, `.bin`, and `.map`):
+This produces four firmwares (each with `.elf`, `.bin`, and `.map`):
 
 - `mipos-arm-qemu.elf` - hello-world demo: boots mipOS and prints a tick
   every second
@@ -186,6 +206,8 @@ This produces three firmwares (each with `.elf`, `.bin`, and `.map`):
   emulated UART
 - `mipos-arm-qemu-filesystem.elf` - interactive console with a RAM-backed
   mipOS tiny filesystem; try `ls` and `cat test1`
+- `mipos-arm-qemu-fatfs.elf` - interactive console with FatFs over a
+  host-backed block device through QEMU semihosting
 
 ### Run
 
@@ -194,20 +216,28 @@ The launch scripts build the firmware on first use and start QEMU:
 ```powershell
 .\scripts\run-qemu.ps1                # filesystem demo
 .\scripts\run-qemu.ps1 console        # mipOS console (CLI)
+.\scripts\run-qemu.ps1 fatfs          # FatFs host-backed block device
 .\scripts\run-qemu.ps1 helloworld     # tick demo
 ```
+
+Generated Visual Studio solutions also include utility targets under
+`QEMU Examples`: `qemu-filesystem`, `qemu-console`, `qemu-fatfs`, and
+`qemu-helloworld`. Build one of those targets to launch the corresponding
+firmware through `scripts/run-qemu.ps1`.
 
 From `cmd.exe` on Windows, use the wrapper:
 
 ```bat
 scripts\run-qemu.cmd                  rem filesystem demo
 scripts\run-qemu.cmd console          rem mipOS console (CLI)
+scripts\run-qemu.cmd fatfs            rem FatFs host-backed block device
 scripts\run-qemu.cmd helloworld       rem tick demo
 ```
 
 ```sh
 ./scripts/run-qemu.sh                 # filesystem demo
 ./scripts/run-qemu.sh console         # mipOS console (CLI)
+./scripts/run-qemu.sh fatfs           # FatFs host-backed block device
 ./scripts/run-qemu.sh helloworld      # tick demo
 ```
 

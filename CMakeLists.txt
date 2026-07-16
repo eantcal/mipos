@@ -28,7 +28,7 @@ if(APPLE)
     elseif(MIPOS_ARCH STREQUAL "x64")
         set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING "" FORCE)
     endif()
-elseif(NOT MSVC)
+elseif(NOT CMAKE_GENERATOR MATCHES "Visual Studio")
     if(MIPOS_ARCH STREQUAL "x86")
         set(CMAKE_C_FLAGS_INIT "${CMAKE_C_FLAGS_INIT} -m32")
         set(CMAKE_CXX_FLAGS_INIT "${CMAKE_CXX_FLAGS_INIT} -m32")
@@ -48,6 +48,8 @@ project(mipos-examples LANGUAGES C CXX)
 
 include(CTest)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 set(MIPOS_HOST_APPLE_ARM64 OFF)
 if(APPLE AND
    (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64|ARM64|AARCH64" OR
@@ -64,6 +66,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(MIPOS_BUILD_EXAMPLES "Build mipOS simulator examples" ON)
 option(MIPOS_BUILD_TESTS "Build mipOS tests" ${BUILD_TESTING})
+option(MIPOS_ADD_QEMU_RUN_TARGETS
+       "Add Visual Studio targets that run QEMU ARM examples"
+       ${WIN32})
+set(MIPOS_NET_STACK "none" CACHE STRING "Optional network stack: none or lwip")
+set_property(CACHE MIPOS_NET_STACK PROPERTY STRINGS none lwip)
 
 set(MIPOS_PUBLIC_DEFINITIONS
     MIPOS_TARGET_SIMU
@@ -157,6 +164,13 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     )
 endif()
 
+if(MIPOS_NET_STACK STREQUAL "lwip")
+    include(cmake/lwip.cmake)
+elseif(NOT MIPOS_NET_STACK STREQUAL "none")
+    message(FATAL_ERROR
+        "Unsupported MIPOS_NET_STACK='${MIPOS_NET_STACK}' (use none or lwip)")
+endif()
+
 if(MIPOS_BUILD_EXAMPLES)
     foreach(example IN ITEMS helloworld malloc timers multitask console filesystem fatfs)
         add_executable(example-${example} examples/simu/${example}/main.c)
@@ -174,6 +188,57 @@ if(MIPOS_BUILD_EXAMPLES)
             ${CMAKE_CURRENT_SOURCE_DIR}/examples/simu/fatfs/disk.img
             $<TARGET_FILE_DIR:example-fatfs>/disk.img
     )
+endif()
+
+if(MIPOS_ADD_QEMU_RUN_TARGETS)
+    if(WIN32)
+        find_program(MIPOS_POWERSHELL
+            NAMES pwsh powershell
+        )
+
+        if(MIPOS_POWERSHELL)
+            function(mipos_add_qemu_run_target name firmware)
+                add_custom_target(${name}
+                    COMMAND ${MIPOS_POWERSHELL}
+                        -NoLogo
+                        -NoProfile
+                        -ExecutionPolicy Bypass
+                        -File "${CMAKE_CURRENT_SOURCE_DIR}/scripts/run-qemu.ps1"
+                        ${firmware}
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                    USES_TERMINAL
+                    VERBATIM
+                )
+                set_target_properties(${name} PROPERTIES
+                    FOLDER "QEMU Examples")
+            endfunction()
+
+            mipos_add_qemu_run_target(qemu-filesystem filesystem)
+            mipos_add_qemu_run_target(qemu-console console)
+            mipos_add_qemu_run_target(qemu-fatfs fatfs)
+            mipos_add_qemu_run_target(qemu-helloworld helloworld)
+        else()
+            message(WARNING
+                "PowerShell not found: QEMU run targets will not be added")
+        endif()
+    else()
+        function(mipos_add_qemu_run_target name firmware)
+            add_custom_target(${name}
+                COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/scripts/run-qemu.sh"
+                    ${firmware}
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                USES_TERMINAL
+                VERBATIM
+            )
+            set_target_properties(${name} PROPERTIES
+                FOLDER "QEMU Examples")
+        endfunction()
+
+        mipos_add_qemu_run_target(qemu-filesystem filesystem)
+        mipos_add_qemu_run_target(qemu-console console)
+        mipos_add_qemu_run_target(qemu-fatfs fatfs)
+        mipos_add_qemu_run_target(qemu-helloworld helloworld)
+    endif()
 endif()
 
 if(MIPOS_BUILD_TESTS)
@@ -197,8 +262,20 @@ if(MIPOS_BUILD_TESTS)
     add_executable(mipos_scheduler_smoke tests/mipos_scheduler_smoke.c)
     target_link_libraries(mipos_scheduler_smoke PRIVATE mipos)
 
+    if(TARGET mipos_lwip)
+        add_executable(mipos_lwip_tests tests/mipos_lwip_tests.cpp)
+        target_link_libraries(mipos_lwip_tests
+            PRIVATE
+                mipos_lwip
+                GTest::gtest_main
+        )
+    endif()
+
     include(GoogleTest)
     gtest_discover_tests(mipos_tests)
+    if(TARGET mipos_lwip_tests)
+        gtest_discover_tests(mipos_lwip_tests)
+    endif()
 
     if(NOT MIPOS_HOST_APPLE_ARM64)
         add_test(NAME mipos_scheduler_smoke COMMAND mipos_scheduler_smoke)
