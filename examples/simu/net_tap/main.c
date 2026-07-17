@@ -13,8 +13,17 @@
 #include <conio.h>
 #include <windows.h>
 #include <winioctl.h>
+#define MIPOS_NET_TAP_WINDOWS 1
 #else
-#error "example-net-tap currently supports Windows/TAP-Windows only"
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <sys/ioctl.h>
+#include <sys/select.h>
+#include <termios.h>
+#include <unistd.h>
+#define MIPOS_NET_TAP_WINDOWS 0
 #endif
 
 #include "lwip/etharp.h"
@@ -28,15 +37,24 @@
 #include "lwip/tcp.h"
 #include "lwip/udp.h"
 
+#if MIPOS_NET_TAP_WINDOWS
 #define TAP_CONTROL_CODE(request, method) \
     CTL_CODE(FILE_DEVICE_UNKNOWN, request, method, FILE_ANY_ACCESS)
 #define TAP_WIN_IOCTL_SET_MEDIA_STATUS TAP_CONTROL_CODE(6, METHOD_BUFFERED)
+#endif
 #define CONSOLE_LINE_MAX 128
 #define CONSOLE_HISTORY_SIZE 16
-#define CONSOLE_KEY_EXTENDED_0 0
-#define CONSOLE_KEY_EXTENDED_1 224
-#define CONSOLE_KEY_UP 72
-#define CONSOLE_KEY_DOWN 80
+#define CONSOLE_KEY_UP 1001
+#define CONSOLE_KEY_DOWN 1002
+#define CONSOLE_KEY_DELETE 1003
+
+#if MIPOS_NET_TAP_WINDOWS
+typedef HANDLE tap_handle_t;
+#else
+typedef int tap_handle_t;
+static struct termios g_saved_terminal;
+static int g_terminal_saved = 0;
+#endif
 
 typedef struct app_config {
     const char* guid;
@@ -48,7 +66,7 @@ typedef struct app_config {
 } app_config_t;
 
 typedef struct app_context {
-    HANDLE tap;
+    tap_handle_t tap;
     mipos_lwip_netif_t* iface;
     struct raw_pcb* ping_pcb;
     struct tcp_pcb* tcp_pcb;
@@ -61,7 +79,7 @@ typedef struct app_context {
     uint16_t ping_seq;
 } app_context_t;
 
-static volatile int g_stop = 0;
+static volatile sig_atomic_t g_stop = 0;
 
 static void on_signal(int sig)
 {
@@ -72,12 +90,21 @@ static void on_signal(int sig)
 static void usage(const char* exe)
 {
     printf("Usage:\n");
+#if MIPOS_NET_TAP_WINDOWS
     printf("  %s --guid {TAP-INTERFACE-GUID} [--ip 10.77.0.2] "
            "[--netmask 255.255.255.0] [--gateway 10.77.0.1] [--verbose]\n",
            exe);
     printf("\n");
     printf("The helper script resolves the GUID automatically:\n");
     printf("  .\\scripts\\run-net-pcap.ps1 -EnsureTap\n");
+#else
+    printf("  %s --name mipos-tap [--ip 10.77.0.2] "
+           "[--netmask 255.255.255.0] [--gateway 10.77.0.1] [--verbose]\n",
+           exe);
+    printf("\n");
+    printf("The helper script creates/configures the TAP automatically:\n");
+    printf("  bash scripts/run-net-pcap.sh --ensure-tap\n");
+#endif
 }
 
 static void print_prompt(void)
@@ -100,6 +127,123 @@ static void redraw_console_line(const char* line,
         }
     }
     fflush(stdout);
+}
+
+static int console_kbhit(void)
+{
+#if MIPOS_NET_TAP_WINDOWS
+    return _kbhit();
+#else
+    struct timeval tv = {0, 0};
+    fd_set fds;
+
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+    return select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv) > 0;
+#endif
+}
+
+static void console_restore(void);
+
+#if !MIPOS_NET_TAP_WINDOWS
+static int console_read_byte(unsigned char* ch, int timeout_ms)
+{
+    fd_set fds;
+    struct timeval tv;
+    struct timeval* tvp = NULL;
+
+    if (timeout_ms >= 0) {
+        tv.tv_sec = timeout_ms / 1000;
+        tv.tv_usec = (timeout_ms % 1000) * 1000;
+        tvp = &tv;
+    }
+
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+    if (select(STDIN_FILENO + 1, &fds, NULL, NULL, tvp) <= 0) {
+        return 0;
+    }
+
+    return read(STDIN_FILENO, ch, 1) == 1;
+}
+#endif
+
+static int console_getch(void)
+{
+#if MIPOS_NET_TAP_WINDOWS
+    int ch = _getch();
+
+    if (ch == 0 || ch == 224) {
+        int ext = _getch();
+        if (ext == 72) {
+            return CONSOLE_KEY_UP;
+        }
+        if (ext == 80) {
+            return CONSOLE_KEY_DOWN;
+        }
+        return 0;
+    }
+
+    return ch;
+#else
+    unsigned char ch;
+
+    if (!console_read_byte(&ch, 0)) {
+        return 0;
+    }
+
+    if (ch == 27) {
+        unsigned char seq[3];
+
+        if (console_read_byte(&seq[0], 25) &&
+            console_read_byte(&seq[1], 25) &&
+            seq[0] == '[') {
+            if (seq[1] == 'A') {
+                return CONSOLE_KEY_UP;
+            }
+            if (seq[1] == 'B') {
+                return CONSOLE_KEY_DOWN;
+            }
+            if (seq[1] == '3' &&
+                console_read_byte(&seq[2], 25) &&
+                seq[2] == '~') {
+                return CONSOLE_KEY_DELETE;
+            }
+        }
+        return 0;
+    }
+
+    return ch;
+#endif
+}
+
+static void console_init(void)
+{
+#if !MIPOS_NET_TAP_WINDOWS
+    struct termios raw;
+
+    if (tcgetattr(STDIN_FILENO, &g_saved_terminal) == 0) {
+        g_terminal_saved = 1;
+        raw = g_saved_terminal;
+        raw.c_lflag &= (tcflag_t)~(ICANON | ECHO);
+        raw.c_lflag |= ISIG;
+        raw.c_iflag &= (tcflag_t)~IXON;
+        raw.c_cc[VMIN] = 0;
+        raw.c_cc[VTIME] = 0;
+        tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+        atexit(console_restore);
+    }
+#endif
+}
+
+static void console_restore(void)
+{
+#if !MIPOS_NET_TAP_WINDOWS
+    if (g_terminal_saved) {
+        tcsetattr(STDIN_FILENO, TCSANOW, &g_saved_terminal);
+        g_terminal_saved = 0;
+    }
+#endif
 }
 
 static int parse_ip(const char* text, ip4_addr_t* out)
@@ -234,7 +378,9 @@ static int parse_args(int argc, char* argv[], app_config_t* cfg)
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             usage(argv[0]);
             exit(0);
-        } else if (strcmp(argv[i], "--guid") == 0 && i + 1 < argc) {
+        } else if ((strcmp(argv[i], "--guid") == 0 ||
+                    strcmp(argv[i], "--name") == 0) &&
+                   i + 1 < argc) {
             cfg->guid = argv[++i];
         } else if (strcmp(argv[i], "--ip") == 0 && i + 1 < argc) {
             if (!parse_ip(argv[++i], &cfg->ip)) {
@@ -267,7 +413,11 @@ static int parse_args(int argc, char* argv[], app_config_t* cfg)
     }
 
     if (!cfg->guid) {
+#if MIPOS_NET_TAP_WINDOWS
         fprintf(stderr, "missing --guid\n");
+#else
+        fprintf(stderr, "missing --name\n");
+#endif
         return 0;
     }
 
@@ -276,15 +426,20 @@ static int parse_args(int argc, char* argv[], app_config_t* cfg)
 
 static void tap_path_from_guid(const char* guid, char* path, size_t path_size)
 {
+#if MIPOS_NET_TAP_WINDOWS
     if (guid[0] == '{') {
         snprintf(path, path_size, "\\\\.\\Global\\%s.tap", guid);
     } else {
         snprintf(path, path_size, "\\\\.\\Global\\{%s}.tap", guid);
     }
+#else
+    snprintf(path, path_size, "%s", guid);
+#endif
 }
 
-static int set_tap_media_status(HANDLE tap, int connected)
+static int set_tap_media_status(tap_handle_t tap, int connected)
 {
+#if MIPOS_NET_TAP_WINDOWS
     unsigned long status = connected ? 1u : 0u;
     unsigned long len = 0;
 
@@ -296,10 +451,16 @@ static int set_tap_media_status(HANDLE tap, int connected)
                            sizeof(status),
                            &len,
                            NULL) != 0;
+#else
+    (void)tap;
+    (void)connected;
+    return 1;
+#endif
 }
 
-static int tap_read_frame(HANDLE tap, uint8_t* frame, unsigned int frame_size, unsigned int* len)
+static int tap_read_frame(tap_handle_t tap, uint8_t* frame, unsigned int frame_size, unsigned int* len)
 {
+#if MIPOS_NET_TAP_WINDOWS
     OVERLAPPED ov;
     DWORD got = 0;
     DWORD err;
@@ -335,10 +496,24 @@ static int tap_read_frame(HANDLE tap, uint8_t* frame, unsigned int frame_size, u
     CloseHandle(ov.hEvent);
     *len = got;
     return 1;
+#else
+    ssize_t got = read(tap, frame, frame_size);
+
+    if (got < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            return 0;
+        }
+        return -1;
+    }
+
+    *len = (unsigned int)got;
+    return got > 0 ? 1 : 0;
+#endif
 }
 
-static int tap_write_frame(HANDLE tap, const uint8_t* frame, unsigned int len)
+static int tap_write_frame(tap_handle_t tap, const uint8_t* frame, unsigned int len)
 {
+#if MIPOS_NET_TAP_WINDOWS
     OVERLAPPED ov;
     DWORD written = 0;
     DWORD err;
@@ -369,6 +544,59 @@ static int tap_write_frame(HANDLE tap, const uint8_t* frame, unsigned int len)
 
     CloseHandle(ov.hEvent);
     return written == len;
+#else
+    ssize_t written = write(tap, frame, len);
+    return written == (ssize_t)len;
+#endif
+}
+
+static tap_handle_t open_tap_device(const char* name_or_path)
+{
+#if MIPOS_NET_TAP_WINDOWS
+    return CreateFileA(name_or_path,
+                       GENERIC_READ | GENERIC_WRITE,
+                       0,
+                       0,
+                       OPEN_EXISTING,
+                       FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED,
+                       0);
+#else
+    struct ifreq ifr;
+    int fd = open("/dev/net/tun", O_RDWR | O_NONBLOCK);
+
+    if (fd < 0) {
+        return -1;
+    }
+
+    memset(&ifr, 0, sizeof(ifr));
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+    strncpy(ifr.ifr_name, name_or_path, IFNAMSIZ - 1);
+
+    if (ioctl(fd, TUNSETIFF, &ifr) < 0) {
+        close(fd);
+        return -1;
+    }
+
+    return fd;
+#endif
+}
+
+static int tap_handle_is_invalid(tap_handle_t tap)
+{
+#if MIPOS_NET_TAP_WINDOWS
+    return tap == INVALID_HANDLE_VALUE;
+#else
+    return tap < 0;
+#endif
+}
+
+static void close_tap_device(tap_handle_t tap)
+{
+#if MIPOS_NET_TAP_WINDOWS
+    CloseHandle(tap);
+#else
+    close(tap);
+#endif
 }
 
 static err_t tap_link_output(void* ctx, const uint8_t* frame, uint16_t frame_len)
@@ -381,7 +609,11 @@ static err_t tap_link_output(void* ctx, const uint8_t* frame, uint16_t frame_len
     }
 
     if (!tap_write_frame(app->tap, frame, frame_len)) {
+#if MIPOS_NET_TAP_WINDOWS
         fprintf(stderr, "TAP write failed: %lu\n", GetLastError());
+#else
+        fprintf(stderr, "TAP write failed: %s\n", strerror(errno));
+#endif
         return ERR_IF;
     }
 
@@ -525,7 +757,7 @@ static void send_ping(app_context_t* app, const ip4_addr_t* dst)
 
 static void show_arp(app_context_t* app, const ip4_addr_t* ip)
 {
-    const struct eth_addr* eth = NULL;
+    struct eth_addr* eth = NULL;
     const ip4_addr_t* found_ip = NULL;
     int index = etharp_find_addr(&app->iface->netif, ip, &eth, &found_ip);
 
@@ -897,8 +1129,8 @@ static void poll_console(app_context_t* app, const app_config_t* cfg)
     static unsigned int history_count = 0;
     static unsigned int history_pos = 0;
 
-    while (_kbhit()) {
-        int ch = _getch();
+    while (console_kbhit()) {
+        int ch = console_getch();
 
         if (ch == '\r' || ch == '\n') {
             putchar('\n');
@@ -921,61 +1153,56 @@ static void poll_console(app_context_t* app, const app_config_t* cfg)
             if (!g_stop) {
                 print_prompt();
             }
-        } else if (ch == CONSOLE_KEY_EXTENDED_0 ||
-                   ch == CONSOLE_KEY_EXTENDED_1) {
+        } else if (ch == 3) {
+            g_stop = 1;
+            break;
+        } else if (ch == 4 && len == 0) {
+            g_stop = 1;
+            break;
+        } else if (ch == CONSOLE_KEY_UP || ch == CONSOLE_KEY_DOWN) {
             unsigned int visible_count =
               history_count < CONSOLE_HISTORY_SIZE ? history_count
                                                    : CONSOLE_HISTORY_SIZE;
-            int ext = _getch();
+            unsigned int previous_len = len;
 
             if (visible_count == 0) {
                 continue;
             }
 
-            if (ext == CONSOLE_KEY_UP) {
+            if (ch == CONSOLE_KEY_UP) {
                 unsigned int oldest = history_count - visible_count;
-                unsigned int previous_len = len;
 
                 if (history_pos > oldest) {
                     --history_pos;
                 }
+            } else if (history_pos < history_count) {
+                ++history_pos;
+            }
 
+            if (history_pos == history_count) {
+                len = 0;
+                line[0] = 0;
+            } else {
                 strncpy(line,
                         history[history_pos % CONSOLE_HISTORY_SIZE],
                         sizeof(line) - 1);
                 line[sizeof(line) - 1] = 0;
                 len = (unsigned int)strlen(line);
-                redraw_console_line(line, len, previous_len);
-            } else if (ext == CONSOLE_KEY_DOWN) {
-                unsigned int previous_len = len;
-
-                if (history_pos < history_count) {
-                    ++history_pos;
-                }
-
-                if (history_pos == history_count) {
-                    len = 0;
-                    line[0] = 0;
-                } else {
-                    strncpy(line,
-                            history[history_pos % CONSOLE_HISTORY_SIZE],
-                            sizeof(line) - 1);
-                    line[sizeof(line) - 1] = 0;
-                    len = (unsigned int)strlen(line);
-                }
-                redraw_console_line(line, len, previous_len);
             }
-        } else if (ch == '\b') {
+            redraw_console_line(line, len, previous_len);
+        } else if (ch == '\b' || ch == 127 || ch == CONSOLE_KEY_DELETE) {
             if (len > 0) {
                 --len;
                 line[len] = 0;
                 printf("\b \b");
+                fflush(stdout);
             }
         } else if (ch >= 32 && ch < 127 && len + 1 < sizeof(line)) {
             line[len++] = (char)ch;
             line[len] = 0;
             history_pos = history_count;
             putchar(ch);
+            fflush(stdout);
         }
     }
 }
@@ -1007,21 +1234,27 @@ int main(int argc, char* argv[])
     app.ip[2] = ip4_addr3(&cfg.ip);
     app.ip[3] = ip4_addr4(&cfg.ip);
 
-    app.tap = CreateFileA(tap_path,
-                          GENERIC_READ | GENERIC_WRITE,
-                          0,
-                          0,
-                          OPEN_EXISTING,
-                          FILE_ATTRIBUTE_SYSTEM | FILE_FLAG_OVERLAPPED,
-                          0);
-    if (app.tap == INVALID_HANDLE_VALUE) {
+#if MIPOS_NET_TAP_WINDOWS
+    app.tap = open_tap_device(tap_path);
+#else
+    app.tap = open_tap_device(cfg.guid);
+#endif
+    if (tap_handle_is_invalid(app.tap)) {
+#if MIPOS_NET_TAP_WINDOWS
         fprintf(stderr, "failed to open TAP device %s: %lu\n", tap_path, GetLastError());
+#else
+        fprintf(stderr, "failed to open TAP device %s: %s\n", cfg.guid, strerror(errno));
+#endif
         return 1;
     }
 
     if (!set_tap_media_status(app.tap, 1)) {
+#if MIPOS_NET_TAP_WINDOWS
         fprintf(stderr, "failed to set TAP media status: %lu\n", GetLastError());
-        CloseHandle(app.tap);
+#else
+        fprintf(stderr, "failed to set TAP media status\n");
+#endif
+        close_tap_device(app.tap);
         return 1;
     }
 
@@ -1040,7 +1273,7 @@ int main(int argc, char* argv[])
                               &app) != ERR_OK) {
         fprintf(stderr, "mipos_lwip_netif_open failed\n");
         set_tap_media_status(app.tap, 0);
-        CloseHandle(app.tap);
+        close_tap_device(app.tap);
         return 1;
     }
     app.iface = &iface;
@@ -1048,15 +1281,20 @@ int main(int argc, char* argv[])
     if (!app.ping_pcb) {
         fprintf(stderr, "raw_new(ICMP) failed\n");
         set_tap_media_status(app.tap, 0);
-        CloseHandle(app.tap);
+        close_tap_device(app.tap);
         return 1;
     }
     raw_recv(app.ping_pcb, ping_recv, &app);
 
     signal(SIGINT, on_signal);
     signal(SIGTERM, on_signal);
+    console_init();
 
+#if MIPOS_NET_TAP_WINDOWS
     printf("tap: %s\n", tap_path);
+#else
+    printf("tap: %s\n", cfg.guid);
+#endif
     printf("mipOS MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
            cfg.mac[0], cfg.mac[1], cfg.mac[2],
            cfg.mac[3], cfg.mac[4], cfg.mac[5]);
@@ -1082,7 +1320,11 @@ int main(int argc, char* argv[])
             continue;
         }
         if (rc < 0) {
+#if MIPOS_NET_TAP_WINDOWS
             fprintf(stderr, "TAP read failed: %lu\n", GetLastError());
+#else
+            fprintf(stderr, "TAP read failed: %s\n", strerror(errno));
+#endif
             break;
         }
         if (frame_len > 65535 || is_own_ethernet_frame(cfg.mac, frame, frame_len)) {
@@ -1097,14 +1339,15 @@ int main(int argc, char* argv[])
         mipos_lwip_netif_input(&iface, frame, (uint16_t)frame_len);
     }
 
-    printf("Stopped. RX=%u TX=%u\n", app.rx_count, app.tx_count);
+    console_restore();
+    printf("\nStopped. RX=%u TX=%u\n", app.rx_count, app.tx_count);
     dhcp_stop(&iface.netif);
     if (app.tcp_pcb) {
         tcp_abort(app.tcp_pcb);
     }
     raw_remove(app.ping_pcb);
     set_tap_media_status(app.tap, 0);
-    CloseHandle(app.tap);
+    close_tap_device(app.tap);
 
     return 0;
 }

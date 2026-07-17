@@ -229,7 +229,9 @@ mipOS-net> stats
 ```
 
 The console keeps an in-memory command history for the current session; use
-the Up/Down arrow keys to recall previous commands.
+the Up/Down arrow keys to recall previous commands. On Linux the TAP and pcap
+consoles use a small raw-mode line editor that handles Backspace, Delete,
+Ctrl-C, and Ctrl-D while restoring the terminal state on exit.
 
 `route` prints the current IPv4 routing view:
 
@@ -258,10 +260,51 @@ TAP console. `udp` emits one datagram, `tcp` starts a single connect attempt,
 provide a DHCP server by itself; use static addressing unless a DHCP service is
 running on that Layer-2 segment.
 
-The `example-net-pcap` binary loads `wpcap.dll` dynamically, so the project
-does not need the Npcap SDK to compile. Wintun is a useful future backend for
-Layer-3 IP packet tests, but it does not expose Ethernet/ARP frames, so TAP is
-the better first target for ARP and ping.
+The `example-net-pcap` binary loads `wpcap.dll` dynamically on Windows, so the
+project does not need the Npcap SDK to compile. On Linux, the normal end-to-end
+path uses `example-net-tap` directly through `/dev/net/tun`; this makes the
+kernel TAP behave like a connected Ethernet peer for ARP, ICMP, and routed
+traffic:
+
+```sh
+sudo apt install cmake build-essential libpcap-dev iproute2
+bash scripts/run-net-pcap.sh --ensure-tap
+```
+
+The Linux helper creates/configures `mipos-tap` as `10.77.0.1/24` and starts
+mipOS as `10.77.0.2`. In another terminal:
+
+```sh
+ping 10.77.0.2
+```
+
+Opening `/dev/net/tun` normally requires elevated privileges; the helper runs
+the TAP example with `sudo` when needed. If you run the binary manually, use
+`sudo ./build-linux-x64-net/example-net-tap --name mipos-tap` or grant the
+equivalent capability yourself. While the example is running, `ip link show
+mipos-tap` should show the TAP link as up with carrier; if the process stops,
+Linux may show the interface as `NO-CARRIER`.
+
+To allow mipOS traffic to leave the TAP subnet on Linux, enable forwarding and
+an iptables masquerade rule through the helper:
+
+```sh
+bash scripts/run-net-pcap.sh --ensure-tap --enable-nat
+```
+
+For manual Linux adapter selection:
+
+```sh
+bash scripts/run-net-pcap.sh --list
+bash scripts/run-net-pcap.sh --adapter mipos-tap
+```
+
+Manual `--adapter` mode uses libpcap and is mainly useful for adapter listing,
+capture, and experiments. For the host kernel to answer mipOS ARP requests on a
+Linux TAP device, prefer `--ensure-tap`, which uses the direct TAP backend.
+
+Wintun is a useful future backend for Layer-3 IP packet tests, but it does not
+expose Ethernet/ARP frames, so TAP is the better first target for ARP and ping.
 
 ### QEMU ARP/ICMP self-test
 

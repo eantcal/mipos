@@ -921,13 +921,19 @@ The adapter boundary is intentionally simple:
 | `mipos_lwip_netif_poll` | drives lwIP timers with `sys_check_timeouts()`, which is required by TCP, DHCP, and DNS |
 | tests | validate ARP, ICMP, UDP, TCP, DHCP discover, and DNS query generation using an in-memory link, without host network privileges |
 
-On Windows, the host-network example has two backends. `example-net-pcap`
-loads `wpcap.dll` dynamically and is useful for adapter listing and packet
-capture/injection through Npcap. `example-net-tap` opens a TAP-Windows device
-directly, marks the virtual link connected, and exposes a small `mipOS-net>`
-console for interactive ARP, route and ping checks. TAP packet logs are
-disabled by default; use the console commands `verbose` and `quiet` to toggle
-RX/TX logging at runtime.
+The host-network examples support Windows and Linux. On Windows,
+`example-net-pcap` loads `wpcap.dll` dynamically and is useful for adapter
+listing and packet capture/injection through Npcap; `example-net-tap` opens a
+TAP-Windows device directly and marks the virtual link connected. On Linux,
+`example-net-tap` opens `/dev/net/tun` directly against a kernel TAP interface
+created by `scripts/run-net-pcap.sh`. The pcap backend still links against
+libpcap and is useful for adapter listing, capture, and experiments, but the
+direct TAP backend is the normal Linux path when the host kernel must answer
+mipOS ARP requests. The interactive `mipOS-net>` console is available from the
+direct TAP backends; packet logs are disabled by default and can be toggled
+with `verbose` and `quiet`. On Linux the console runs a small raw-mode line
+editor for Backspace, Delete, Ctrl-C, Ctrl-D, and Up/Down history while
+restoring the terminal state on exit.
 
 The normal TAP topology is:
 
@@ -956,6 +962,22 @@ The script configures the TAP address, enables IPv4 forwarding on the TAP
 interface, and creates or reuses a Windows `NetNat` named `mipOSNat` for the
 internal prefix, by default `10.77.0.0/24`.
 
+On Linux the equivalent setup uses a kernel TAP interface opened directly
+through `/dev/net/tun`:
+
+```sh
+sudo apt install cmake build-essential libpcap-dev iproute2
+bash scripts/run-net-pcap.sh --ensure-tap
+```
+
+The helper creates/configures `mipos-tap` as `10.77.0.1/24` and starts mipOS
+as `10.77.0.2`. Add `--enable-nat` to enable IPv4 forwarding and install an
+iptables MASQUERADE rule for traffic leaving through the host default route.
+Opening `/dev/net/tun` normally requires elevated privileges, so the helper
+runs the TAP example with `sudo` when needed. While the process is running,
+`ip link show mipos-tap` should report carrier on the TAP interface; when no
+process has it open Linux may show `NO-CARRIER`.
+
 Inside the TAP example console:
 
 ```text
@@ -980,12 +1002,14 @@ mipOS-net> dns example.com
 
 The console line editor stores a small in-memory history for the current
 session; the Up/Down arrow keys walk backward and forward through previous
-commands.
+commands. On Linux, Backspace and Delete edit the current command, Ctrl-C
+stops the example cleanly, and Ctrl-D exits when the current command line is
+empty.
 
 `route` is diagnostic: there is one connected route for the local subnet and
-one default route through the configured gateway. `arp` resolves the
-Windows-side TAP address. ICMP to an internet host depends on the Windows NAT
-and firewall policy; if `ping 1.1.1.1` does not receive a reply, inspect the
+one default route through the configured gateway. `arp` resolves the host-side
+TAP address. ICMP to an internet host depends on the host NAT and firewall
+policy; if `ping 1.1.1.1` does not receive a reply, inspect the
 packet log first to confirm that mipOS emitted the echo request via
 `10.77.0.1`.
 

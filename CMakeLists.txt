@@ -208,21 +208,41 @@ if(MIPOS_BUILD_EXAMPLES)
 
         if(WIN32)
             target_compile_definitions(example-net-pcap PRIVATE WIN32_LEAN_AND_MEAN)
+        elseif(UNIX)
+            find_path(MIPOS_PCAP_INCLUDE_DIR
+                NAMES pcap/pcap.h
+            )
+            find_library(MIPOS_PCAP_LIBRARY
+                NAMES pcap
+            )
+
+            if(NOT MIPOS_PCAP_INCLUDE_DIR OR NOT MIPOS_PCAP_LIBRARY)
+                message(FATAL_ERROR
+                    "The pcap example requires libpcap development files "
+                    "(for example: sudo apt install libpcap-dev)")
+            endif()
+
+            target_include_directories(example-net-pcap PRIVATE
+                ${MIPOS_PCAP_INCLUDE_DIR})
+            target_link_libraries(example-net-pcap PRIVATE
+                ${MIPOS_PCAP_LIBRARY})
         else()
             message(FATAL_ERROR
-                "The pcap example currently supports Windows/Npcap only")
+                "The pcap example currently supports Windows/Npcap and Linux/libpcap only")
         endif()
     endif()
 
     if(MIPOS_NET_BACKEND STREQUAL "tap" OR MIPOS_NET_BACKEND STREQUAL "all")
-        add_executable(example-net-tap examples/simu/net_tap/main.c)
-        target_link_libraries(example-net-tap PRIVATE mipos_lwip)
-
         if(WIN32)
+            add_executable(example-net-tap examples/simu/net_tap/main.c)
+            target_link_libraries(example-net-tap PRIVATE mipos_lwip)
             target_compile_definitions(example-net-tap PRIVATE WIN32_LEAN_AND_MEAN)
+        elseif(UNIX)
+            add_executable(example-net-tap examples/simu/net_tap/main.c)
+            target_link_libraries(example-net-tap PRIVATE mipos_lwip)
         else()
             message(FATAL_ERROR
-                "The TAP example currently supports Windows/TAP-Windows only")
+                "The TAP example currently supports Windows/TAP-Windows and Linux TAP only")
         endif()
     endif()
 endif()
