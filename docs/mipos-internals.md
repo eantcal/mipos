@@ -904,6 +904,106 @@ macOS, and a bare-metal Cortex-M3.
 | **stdio** | `ENABLE_MIPOS_STDIO` | `mipos_fopen/fread/fwrite/fseek/...` layered on tinyFS. |
 | **FatFS glue** | — | `mipos_diskio.c` adapts the kernel to ChaN’s FatFS (vFAT) as an alternative filesystem; see the `fatfs` simulator example. |
 
+### 13.1 Optional networking
+
+The TCP/IP stack is optional and selected at build time with
+`-DMIPOS_NET_STACK=lwip`. The current port uses lwIP in `NO_SYS=1` mode and
+keeps the integration on raw lwIP APIs: Ethernet/IPv4, ARP, ICMP, UDP, TCP,
+DHCP client, DNS client, and a mipOS-facing `netif` adapter in
+`mipos/net/lwip/`. IPv6, sockets, and netconn are not enabled.
+
+The adapter boundary is intentionally simple:
+
+| Layer | Responsibility |
+|---|---|
+| `mipos_lwip_netif_open` | creates an lwIP Ethernet `netif`, assigns MAC/IP/netmask/gateway, and installs a link-output callback |
+| example backend | injects received Ethernet frames into lwIP and transmits frames produced by lwIP |
+| `mipos_lwip_netif_poll` | drives lwIP timers with `sys_check_timeouts()`, which is required by TCP, DHCP, and DNS |
+| tests | validate ARP, ICMP, UDP, TCP, DHCP discover, and DNS query generation using an in-memory link, without host network privileges |
+
+On Windows, the host-network example has two backends. `example-net-pcap`
+loads `wpcap.dll` dynamically and is useful for adapter listing and packet
+capture/injection through Npcap. `example-net-tap` opens a TAP-Windows device
+directly, marks the virtual link connected, and exposes a small `mipOS-net>`
+console for interactive ARP, route and ping checks. TAP packet logs are
+disabled by default; use the console commands `verbose` and `quiet` to toggle
+RX/TX logging at runtime.
+
+The normal TAP topology is:
+
+```text
+mipOS 10.77.0.2/24
+  gateway 10.77.0.1
+        |
+TAP-Windows adapter 10.77.0.1/24
+        |
+Windows host
+```
+
+Run it with:
+
+```powershell
+.\scripts\run-net-pcap.ps1 -EnsureTap
+```
+
+To route beyond the TAP subnet, add Windows NAT:
+
+```powershell
+.\scripts\run-net-pcap.ps1 -EnsureTap -EnableNat
+```
+
+The script configures the TAP address, enables IPv4 forwarding on the TAP
+interface, and creates or reuses a Windows `NetNat` named `mipOSNat` for the
+internal prefix, by default `10.77.0.0/24`.
+
+Inside the TAP example console:
+
+```text
+mipOS-net> route
+destination      gateway          netmask          iface  type
+10.77.0.0        0.0.0.0          255.255.255.0    mip0   connected
+0.0.0.0          10.77.0.1        0.0.0.0          mip0   default
+
+mipOS-net> route 1.1.1.1
+destination      next-hop         iface  type
+1.1.1.1          10.77.0.1        mip0   default
+
+mipOS-net> arp 10.77.0.1
+mipOS-net> ping 10.77.0.1
+mipOS-net> ping 1.1.1.1
+mipOS-net> udp 10.77.0.1 9000 hello
+mipOS-net> tcp 1.1.1.1 80
+mipOS-net> dhcp status
+mipOS-net> dns server 1.1.1.1
+mipOS-net> dns example.com
+```
+
+The console line editor stores a small in-memory history for the current
+session; the Up/Down arrow keys walk backward and forward through previous
+commands.
+
+`route` is diagnostic: there is one connected route for the local subnet and
+one default route through the configured gateway. `arp` resolves the
+Windows-side TAP address. ICMP to an internet host depends on the Windows NAT
+and firewall policy; if `ping 1.1.1.1` does not receive a reply, inspect the
+packet log first to confirm that mipOS emitted the echo request via
+`10.77.0.1`.
+
+The remaining console commands are thin diagnostics over lwIP raw APIs.
+`udp` emits one datagram, `tcp` starts one TCP connect attempt, `dhcp
+start|stop|status` controls the DHCP client, and `dns server <ip>` plus
+`dns <name>` configures and tests DNS. The TAP helper configures static
+addressing; it does not create a DHCP server, so DHCP only completes if some
+service on that Layer-2 segment answers the discover.
+
+The QEMU ARM self-test builds the same lwIP netif adapter into firmware and
+uses an in-memory link peer to validate ARP and ICMP under the ARM/QEMU
+configuration:
+
+```powershell
+.\scripts\run-qemu.ps1 net-selftest
+```
+
 ## 14. The porting layer (BSP)
 
 A port provides one header (+ optional sources) included via `mipos_bsp.h`

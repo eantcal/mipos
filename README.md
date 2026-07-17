@@ -118,8 +118,8 @@ The current test targets cover:
 - mipOS malloc/free/realloc basics
 - cooperative multitasking: task creation, round-robin yielding, and task
   termination through the scheduler
-- optional lwIP Ethernet/IPv4 integration: ARP reply and ICMP echo reply over
-  a simulated link driver
+- optional lwIP Ethernet/IPv4 integration: ARP, ICMP, UDP, TCP, DHCP, and DNS
+  over a simulated link driver
 
 The test suite also runs in CI (GitHub Actions) on Linux x64/x86, Windows
 x64/Win32, and macOS ARM64. The macOS ARM64 job builds the project and runs
@@ -136,7 +136,9 @@ registered on that host architecture.
 - `mipos_scheduler_smoke` exercises cooperative scheduling on supported
   simulator hosts: Linux x64/x86 and Windows x64/Win32.
 - Optional networking can be enabled with `-DMIPOS_NET_STACK=lwip`. The current
-  lwIP port is `NO_SYS=1`, IPv4/Ethernet only, and starts with ARP + ICMP.
+  lwIP port is `NO_SYS=1`, IPv4/Ethernet only, and enables ARP, ICMP, UDP,
+  TCP raw APIs, DHCP client, and DNS client. IPv6, sockets, and netconn are
+  not enabled.
 - macOS ARM64 support is currently build/unit-test coverage only for the
   simulator. Scheduler context switching on Apple Silicon needs a dedicated
   backend before scheduler examples or smoke tests can be considered supported.
@@ -154,8 +156,128 @@ cmake --build build-vs-x64-lwip --config Release --target mipos_lwip_tests
 
 CMake downloads lwIP 2.2.1 from the official Savannah release archive and
 builds only the subset needed by mipOS. The first driver model is an Ethernet
-`netif` adapter with receive injection and link-output callbacks; the initial
-coverage verifies ARP and ICMP echo reply behavior without requiring hardware.
+`netif` adapter with receive injection and link-output callbacks; the test
+coverage verifies ARP, ICMP echo reply, UDP output, TCP connect/listen setup,
+DHCP discover output, and DNS query output without requiring hardware.
+
+### Windows TAP/Npcap ping test
+
+For an end-to-end host test, use Npcap to capture and inject Ethernet frames
+on a Layer-2 adapter such as TAP-Windows. This keeps ARP visible to mipOS, so
+the first real service test can be the normal Windows `ping` command.
+
+1. Install Npcap and a TAP adapter, for example the OpenVPN TAP-Windows driver.
+2. In an Administrator PowerShell, create/configure the TAP adapter and start
+   the mipOS side:
+
+   ```powershell
+   .\scripts\run-net-pcap.ps1 -EnsureTap
+   ```
+
+   This looks for an existing `mipOS TAP` adapter, otherwise tries to create
+   one with OpenVPN `tapctl.exe`, configures the Windows side as `10.77.0.1`,
+   and starts mipOS as `10.77.0.2`.
+
+   To let mipOS reach hosts beyond the TAP subnet, also enable Windows NAT:
+
+   ```powershell
+   .\scripts\run-net-pcap.ps1 -EnsureTap -EnableNat
+   ```
+
+   This enables IPv4 forwarding on the TAP interface and creates a Windows
+   `NetNat` named `mipOSNat` for the `10.77.0.0/24` internal prefix.
+
+3. To inspect adapters manually instead:
+
+   ```powershell
+   .\scripts\run-net-pcap.ps1 -List
+   ```
+
+4. Or start the mipOS lwIP bridge on a specific TAP/Npcap adapter index:
+
+   ```powershell
+   .\scripts\run-net-pcap.ps1 -Adapter 3 -Ip 10.77.0.2 -Gateway 10.77.0.1
+   ```
+
+5. In another terminal, test ARP + ICMP:
+
+   ```powershell
+   ping 10.77.0.2
+   ```
+
+By default the TAP console keeps packet logs disabled. Type `verbose` to show
+compact packet logs such as `RX ARP who-has 10.77.0.2`,
+`TX ARP is-at 10.77.0.2`, `RX ICMP echo request`, and `TX ICMP echo reply`;
+type `quiet` to hide them again. `example-net-pcap.exe` still supports
+`--quiet` when run directly.
+
+The TAP backend also exposes a small interactive console on the mipOS side:
+
+```text
+mipOS-net> help
+mipOS-net> route
+mipOS-net> route 1.1.1.1
+mipOS-net> arp 10.77.0.1
+mipOS-net> ping 10.77.0.1
+mipOS-net> ping 1.1.1.1
+mipOS-net> udp 10.77.0.1 9000 hello
+mipOS-net> tcp 1.1.1.1 80
+mipOS-net> dhcp status
+mipOS-net> dns server 1.1.1.1
+mipOS-net> dns example.com
+mipOS-net> stats
+```
+
+The console keeps an in-memory command history for the current session; use
+the Up/Down arrow keys to recall previous commands.
+
+`route` prints the current IPv4 routing view:
+
+```text
+mipOS-net> route
+destination      gateway          netmask          iface  type
+10.77.0.0        0.0.0.0          255.255.255.0    mip0   connected
+0.0.0.0          10.77.0.1        0.0.0.0          mip0   default
+
+mipOS-net> route 1.1.1.1
+destination      next-hop         iface  type
+1.1.1.1          10.77.0.1        mip0   default
+```
+
+`arp` should resolve the Windows-side TAP address. `ping 10.77.0.1` sends an
+ICMP echo request from mipOS to Windows; if the packet log shows the outgoing
+request but no reply, allow inbound ICMP echo requests for that Windows network
+profile/firewall rule and try again. With `-EnableNat`, `ping 1.1.1.1` should
+route via `10.77.0.1`; ICMP through Windows NAT can still depend on local
+firewall/NAT policy, so the packet log is the first thing to inspect.
+
+The `udp`, `tcp`, `dhcp`, and `dns` commands exercise lwIP raw APIs from the
+TAP console. `udp` emits one datagram, `tcp` starts a single connect attempt,
+`dhcp start|stop|status` controls the DHCP client, and `dns server <ip>` plus
+`dns <name>` configures and tests the DNS client. The host TAP setup does not
+provide a DHCP server by itself; use static addressing unless a DHCP service is
+running on that Layer-2 segment.
+
+The `example-net-pcap` binary loads `wpcap.dll` dynamically, so the project
+does not need the Npcap SDK to compile. Wintun is a useful future backend for
+Layer-3 IP packet tests, but it does not expose Ethernet/ARP frames, so TAP is
+the better first target for ARP and ping.
+
+### QEMU ARP/ICMP self-test
+
+The QEMU port can also build a cross-compiled lwIP self-test firmware. It uses
+the same `netif` adapter with an in-memory link, so it validates ARP and ICMP
+inside the ARM/QEMU environment while the real Stellaris Ethernet driver is
+still pending:
+
+```powershell
+cmake -S . -B build-qemu-arm -G Ninja `
+      -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-toolchain.cmake `
+      -DMIPOS_TARGET_QEMU_ARM=ON `
+      -DMIPOS_QEMU_ARM_NET_SELFTEST=ON
+cmake --build build-qemu-arm --target mipos-arm-qemu-net-selftest
+.\scripts\run-qemu.ps1 net-selftest
+```
 
 ## Examples
 
@@ -217,6 +339,7 @@ The launch scripts build the firmware on first use and start QEMU:
 .\scripts\run-qemu.ps1                # filesystem demo
 .\scripts\run-qemu.ps1 console        # mipOS console (CLI)
 .\scripts\run-qemu.ps1 fatfs          # FatFs host-backed block device
+.\scripts\run-qemu.ps1 net-selftest   # lwIP ARP/ICMP self-test
 .\scripts\run-qemu.ps1 helloworld     # tick demo
 ```
 
@@ -231,6 +354,7 @@ From `cmd.exe` on Windows, use the wrapper:
 scripts\run-qemu.cmd                  rem filesystem demo
 scripts\run-qemu.cmd console          rem mipOS console (CLI)
 scripts\run-qemu.cmd fatfs            rem FatFs host-backed block device
+scripts\run-qemu.cmd net-selftest     rem lwIP ARP/ICMP self-test
 scripts\run-qemu.cmd helloworld       rem tick demo
 ```
 
@@ -238,6 +362,7 @@ scripts\run-qemu.cmd helloworld       rem tick demo
 ./scripts/run-qemu.sh                 # filesystem demo
 ./scripts/run-qemu.sh console         # mipOS console (CLI)
 ./scripts/run-qemu.sh fatfs           # FatFs host-backed block device
+./scripts/run-qemu.sh net-selftest    # lwIP ARP/ICMP self-test
 ./scripts/run-qemu.sh helloworld      # tick demo
 ```
 

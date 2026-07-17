@@ -4,6 +4,7 @@
 #   .\scripts\run-qemu.ps1                 # filesystem demo (default)
 #   .\scripts\run-qemu.ps1 console         # interactive mipOS console (CLI)
 #   .\scripts\run-qemu.ps1 fatfs           # FatFs over host-backed disk image
+#   .\scripts\run-qemu.ps1 net-selftest    # lwIP ARP/ICMP self-test
 #   .\scripts\run-qemu.ps1 helloworld      # tick demo
 #   .\scripts\run-qemu.ps1 -Rebuild        # force a rebuild first
 #   .\scripts\run-qemu.ps1 -Gdb            # start halted with GDB server :1234
@@ -14,7 +15,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('filesystem', 'console', 'helloworld', 'fatfs')]
+    [ValidateSet('filesystem', 'console', 'helloworld', 'fatfs', 'net-selftest')]
     [string]$Firmware = 'filesystem',
 
     [string]$DiskImage,
@@ -29,13 +30,14 @@ $ErrorActionPreference = 'Stop'
 if ($Help) {
     @'
 Usage:
-  .\scripts\run-qemu.ps1 [filesystem|console|helloworld|fatfs] [-DiskImage <path>] [-ResetDisk] [-Rebuild] [-Gdb]
+  .\scripts\run-qemu.ps1 [filesystem|console|helloworld|fatfs|net-selftest] [-DiskImage <path>] [-ResetDisk] [-Rebuild] [-Gdb]
 
 Firmware:
   filesystem    interactive mipOS tiny filesystem demo (default)
   console       interactive mipOS console
   helloworld    boot demo that prints periodic ticks
   fatfs         FatFs demo backed by build-qemu-arm\qemu-fatfs.img
+  net-selftest  lwIP ARP/ICMP self-test with an in-memory link
 
 Options:
   -DiskImage    source FAT image copied to qemu-fatfs.img when it is missing
@@ -55,6 +57,7 @@ $elfName = switch ($Firmware) {
     'filesystem' { 'mipos-arm-qemu-filesystem.elf' }
     'console' { 'mipos-arm-qemu-console.elf' }
     'fatfs' { 'mipos-arm-qemu-fatfs.elf' }
+    'net-selftest' { 'mipos-arm-qemu-net-selftest.elf' }
     default { 'mipos-arm-qemu.elf' }
 }
 $elf = Join-Path $buildDir $elfName
@@ -84,9 +87,18 @@ if ($Rebuild -or -not (Test-Path $elf)) {
     }
 
     Write-Host "Building $elfName..." -ForegroundColor Cyan
-    cmake -S $repoRoot -B $buildDir -G Ninja `
-        -DCMAKE_TOOLCHAIN_FILE="$repoRoot\cmake\arm-none-eabi-toolchain.cmake" `
-        -DMIPOS_TARGET_QEMU_ARM=ON
+    $cmakeArgs = @(
+        '-S', $repoRoot,
+        '-B', $buildDir,
+        '-G', 'Ninja',
+        "-DCMAKE_TOOLCHAIN_FILE=$repoRoot\cmake\arm-none-eabi-toolchain.cmake",
+        '-DMIPOS_TARGET_QEMU_ARM=ON'
+    )
+    if ($Firmware -eq 'net-selftest') {
+        $cmakeArgs += '-DMIPOS_QEMU_ARM_NET_SELFTEST=ON'
+    }
+
+    cmake @cmakeArgs
     if ($LASTEXITCODE -ne 0) { throw 'CMake configuration failed' }
 
     cmake --build $buildDir

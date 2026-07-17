@@ -5,6 +5,7 @@
 #   ./scripts/run-qemu.sh                # filesystem demo (default)
 #   ./scripts/run-qemu.sh console        # interactive mipOS console (CLI)
 #   ./scripts/run-qemu.sh fatfs          # FatFs over host-backed disk image
+#   ./scripts/run-qemu.sh net-selftest   # lwIP ARP/ICMP self-test
 #   ./scripts/run-qemu.sh helloworld     # tick demo
 #   ./scripts/run-qemu.sh --rebuild      # force a rebuild first
 #   ./scripts/run-qemu.sh --gdb          # start halted with GDB server :1234
@@ -23,13 +24,14 @@ reset_disk=0
 usage() {
     cat <<EOF
 Usage:
-  $0 [filesystem|console|helloworld|fatfs] [--disk-image <path>] [--reset-disk] [--rebuild] [--gdb]
+  $0 [filesystem|console|helloworld|fatfs|net-selftest] [--disk-image <path>] [--reset-disk] [--rebuild] [--gdb]
 
 Firmware:
   filesystem    interactive mipOS tiny filesystem demo (default)
   console       interactive mipOS console
   helloworld    boot demo that prints periodic ticks
   fatfs         FatFs demo backed by build-qemu-arm/qemu-fatfs.img
+  net-selftest  lwIP ARP/ICMP self-test with an in-memory link
 
 Options:
   --disk-image  source FAT image copied to qemu-fatfs.img when it is missing
@@ -44,7 +46,7 @@ EOF
 while [ "$#" -gt 0 ]; do
     arg="$1"
     case "$arg" in
-        filesystem | console | helloworld | fatfs) firmware="$arg" ;;
+        filesystem | console | helloworld | fatfs | net-selftest) firmware="$arg" ;;
         --disk-image)
             shift
             disk_image="${1:-}"
@@ -75,6 +77,7 @@ case "$firmware" in
     filesystem) elf="$build_dir/mipos-arm-qemu-filesystem.elf" ;;
     console) elf="$build_dir/mipos-arm-qemu-console.elf" ;;
     fatfs) elf="$build_dir/mipos-arm-qemu-fatfs.elf" ;;
+    net-selftest) elf="$build_dir/mipos-arm-qemu-net-selftest.elf" ;;
     helloworld) elf="$build_dir/mipos-arm-qemu.elf" ;;
 esac
 qemu_fat_image="$build_dir/qemu-fatfs.img"
@@ -90,9 +93,14 @@ if [ "$rebuild" = 1 ] || [ ! -f "$elf" ]; then
         exit 1
     }
 
+    cmake_args="-DMIPOS_TARGET_QEMU_ARM=ON"
+    if [ "$firmware" = net-selftest ]; then
+        cmake_args="$cmake_args -DMIPOS_QEMU_ARM_NET_SELFTEST=ON"
+    fi
+
     cmake -S "$repo_root" -B "$build_dir" \
         -DCMAKE_TOOLCHAIN_FILE="$repo_root/cmake/arm-none-eabi-toolchain.cmake" \
-        -DMIPOS_TARGET_QEMU_ARM=ON
+        $cmake_args
     cmake --build "$build_dir" --parallel
 fi
 

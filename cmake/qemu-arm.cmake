@@ -11,6 +11,10 @@
 
 enable_language(ASM)
 
+option(MIPOS_QEMU_ARM_NET_SELFTEST
+       "Build the QEMU ARM lwIP ARP/ICMP self-test firmware"
+       OFF)
+
 set(MIPOS_QEMU_ARM_LINKER_SCRIPT
     ${CMAKE_CURRENT_SOURCE_DIR}/mipos/arch/qemu-arm/linker_qemu_arm.ld)
 
@@ -128,3 +132,25 @@ mipos_qemu_arm_firmware(mipos-arm-qemu-fatfs
     DEFINITIONS
         ENABLE_MIPOS_CONSOLE
 )
+
+if(MIPOS_QEMU_ARM_NET_SELFTEST)
+    include(cmake/lwip-fetch.cmake)
+
+    mipos_qemu_arm_firmware(mipos-arm-qemu-net-selftest
+        MAIN examples/qemu-arm/net-selftest/main.c
+        SOURCES
+            mipos/net/lwip/mipos_lwip_netif.c
+            ${MIPOS_LWIP_SOURCES}
+        DEFINITIONS
+            MIPOS_NET_STACK_LWIP=1
+    )
+
+    target_include_directories(mipos-arm-qemu-net-selftest PRIVATE
+        ${MIPOS_LWIP_INCLUDE_DIRS}
+    )
+
+    target_compile_options(mipos-arm-qemu-net-selftest PRIVATE
+        -Wno-unused-parameter
+        -Wno-sign-compare
+    )
+endif()

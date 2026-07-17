@@ -71,6 +71,8 @@ option(MIPOS_ADD_QEMU_RUN_TARGETS
        ${WIN32})
 set(MIPOS_NET_STACK "none" CACHE STRING "Optional network stack: none or lwip")
 set_property(CACHE MIPOS_NET_STACK PROPERTY STRINGS none lwip)
+set(MIPOS_NET_BACKEND "none" CACHE STRING "Optional network backend: none, pcap, tap, or all")
+set_property(CACHE MIPOS_NET_BACKEND PROPERTY STRINGS none pcap tap all)
 
 set(MIPOS_PUBLIC_DEFINITIONS
     MIPOS_TARGET_SIMU
@@ -171,6 +173,17 @@ elseif(NOT MIPOS_NET_STACK STREQUAL "none")
         "Unsupported MIPOS_NET_STACK='${MIPOS_NET_STACK}' (use none or lwip)")
 endif()
 
+if(NOT MIPOS_NET_BACKEND STREQUAL "none" AND NOT TARGET mipos_lwip)
+    message(FATAL_ERROR
+        "MIPOS_NET_BACKEND='${MIPOS_NET_BACKEND}' requires MIPOS_NET_STACK=lwip")
+elseif(NOT MIPOS_NET_BACKEND STREQUAL "none" AND
+       NOT MIPOS_NET_BACKEND STREQUAL "pcap" AND
+       NOT MIPOS_NET_BACKEND STREQUAL "tap" AND
+       NOT MIPOS_NET_BACKEND STREQUAL "all")
+    message(FATAL_ERROR
+        "Unsupported MIPOS_NET_BACKEND='${MIPOS_NET_BACKEND}' (use none, pcap, tap, or all)")
+endif()
+
 if(MIPOS_BUILD_EXAMPLES)
     foreach(example IN ITEMS helloworld malloc timers multitask console filesystem fatfs)
         add_executable(example-${example} examples/simu/${example}/main.c)
@@ -188,6 +201,30 @@ if(MIPOS_BUILD_EXAMPLES)
             ${CMAKE_CURRENT_SOURCE_DIR}/examples/simu/fatfs/disk.img
             $<TARGET_FILE_DIR:example-fatfs>/disk.img
     )
+
+    if(MIPOS_NET_BACKEND STREQUAL "pcap" OR MIPOS_NET_BACKEND STREQUAL "all")
+        add_executable(example-net-pcap examples/simu/net_pcap/main.c)
+        target_link_libraries(example-net-pcap PRIVATE mipos_lwip)
+
+        if(WIN32)
+            target_compile_definitions(example-net-pcap PRIVATE WIN32_LEAN_AND_MEAN)
+        else()
+            message(FATAL_ERROR
+                "The pcap example currently supports Windows/Npcap only")
+        endif()
+    endif()
+
+    if(MIPOS_NET_BACKEND STREQUAL "tap" OR MIPOS_NET_BACKEND STREQUAL "all")
+        add_executable(example-net-tap examples/simu/net_tap/main.c)
+        target_link_libraries(example-net-tap PRIVATE mipos_lwip)
+
+        if(WIN32)
+            target_compile_definitions(example-net-tap PRIVATE WIN32_LEAN_AND_MEAN)
+        else()
+            message(FATAL_ERROR
+                "The TAP example currently supports Windows/TAP-Windows only")
+        endif()
+    endif()
 endif()
 
 if(MIPOS_ADD_QEMU_RUN_TARGETS)

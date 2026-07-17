@@ -1,11 +1,32 @@
 #include "mipos_lwip_netif.h"
 
 #include <string.h>
+#include <time.h>
+
+#if defined(_WIN32)
+__declspec(dllimport) unsigned long long __stdcall GetTickCount64(void);
+#endif
 
 #include "lwip/etharp.h"
 #include "lwip/init.h"
 #include "lwip/pbuf.h"
+#include "lwip/timeouts.h"
 #include "netif/ethernet.h"
+
+u32_t sys_now(void)
+{
+#if defined(_WIN32)
+    return (u32_t)GetTickCount64();
+#elif defined(CLOCK_MONOTONIC)
+    struct timespec ts;
+
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
+        return (u32_t)((ts.tv_sec * 1000u) + (ts.tv_nsec / 1000000u));
+    }
+#endif
+
+    return (u32_t)((clock() * 1000u) / CLOCKS_PER_SEC);
+}
 
 static err_t mipos_lwip_low_level_output(struct netif* netif, struct pbuf* p)
 {
@@ -110,4 +131,5 @@ err_t mipos_lwip_netif_input(mipos_lwip_netif_t* iface,
 void mipos_lwip_netif_poll(mipos_lwip_netif_t* iface)
 {
     (void)iface;
+    sys_check_timeouts();
 }

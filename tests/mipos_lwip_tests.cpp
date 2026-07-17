@@ -6,7 +6,12 @@
 #include <vector>
 
 extern "C" {
+#include "lwip/dhcp.h"
+#include "lwip/dns.h"
 #include "lwip/init.h"
+#include "lwip/ip_addr.h"
+#include "lwip/tcp.h"
+#include "lwip/udp.h"
 #include "mipos_lwip_netif.h"
 }
 
@@ -112,9 +117,68 @@ std::vector<uint8_t> make_icmp_echo_request()
     return frame;
 }
 
+bool is_ipv4_proto(const std::vector<uint8_t>& frame, uint8_t proto)
+{
+    return frame.size() >= 34 && read_be16(frame.data() + 12) == 0x0800 &&
+           frame[23] == proto;
+}
+
+uint16_t ipv4_payload_offset(const std::vector<uint8_t>& frame)
+{
+    return static_cast<uint16_t>(14u + ((frame[14] & 0x0fu) * 4u));
+}
+
+bool is_udp_ports(const std::vector<uint8_t>& frame, uint16_t src, uint16_t dst)
+{
+    if (!is_ipv4_proto(frame, 17)) {
+        return false;
+    }
+
+    const uint16_t udp = ipv4_payload_offset(frame);
+    return frame.size() >= udp + 8 && read_be16(frame.data() + udp) == src &&
+           read_be16(frame.data() + udp + 2) == dst;
+}
+
+bool has_frame_matching(const CapturedFrames& captured,
+                        bool (*predicate)(const std::vector<uint8_t>&))
+{
+    for (const auto& frame : captured.frames) {
+        if (predicate(frame)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool is_dns_query_to_host(const std::vector<uint8_t>& frame)
+{
+    return frame.size() >= 42 && is_udp_ports(frame, read_be16(frame.data() + ipv4_payload_offset(frame)), 53) &&
+           std::memcmp(frame.data() + 30, kHostIp.data(), 4) == 0;
+}
+
+bool is_dhcp_discover(const std::vector<uint8_t>& frame)
+{
+    return is_udp_ports(frame, 68, 67);
+}
+
+err_t tcp_connected_noop(void* arg, struct tcp_pcb* pcb, err_t err)
+{
+    (void)arg;
+    (void)pcb;
+    return err;
+}
+
+void dns_found_noop(const char* name, const ip_addr_t* ipaddr, void* arg)
+{
+    (void)name;
+    (void)ipaddr;
+    (void)arg;
+}
+
 }  // namespace
 
-TEST(MiposLwip, RepliesToArpAndIcmpEcho)
+TEST(MiposLwip, SupportsIpv4ArpIcmpUdpTcpDhcpAndDns)
 {
     lwip_init();
 
@@ -167,4 +231,55 @@ TEST(MiposLwip, RepliesToArpAndIcmpEcho)
     EXPECT_EQ(0u, reply[35]);
     EXPECT_EQ(0x4567u, read_be16(reply.data() + 38));
     EXPECT_EQ(1u, read_be16(reply.data() + 40));
+
+    captured.frames.clear();
+    struct udp_pcb* udp = udp_new();
+    ASSERT_NE(nullptr, udp);
+    ip4_addr_t host_ip4;
+    ip_addr_t host_addr;
+    IP4_ADDR(&host_ip4, kHostIp[0], kHostIp[1], kHostIp[2], kHostIp[3]);
+    ip_addr_copy_from_ip4(host_addr, host_ip4);
+    ASSERT_EQ(ERR_OK, udp_bind(udp, IP_ADDR_ANY, 12000));
+    struct pbuf* udp_payload = pbuf_alloc(PBUF_TRANSPORT, 4, PBUF_RAM);
+    ASSERT_NE(nullptr, udp_payload);
+    ASSERT_EQ(ERR_OK, pbuf_take(udp_payload, "mipo", 4));
+    ASSERT_EQ(ERR_OK, udp_sendto(udp, udp_payload, &host_addr, 12001));
+    pbuf_free(udp_payload);
+    udp_remove(udp);
+    ASSERT_FALSE(captured.frames.empty());
+    EXPECT_TRUE(has_frame_matching(captured, [](const std::vector<uint8_t>& frame) {
+        return is_udp_ports(frame, 12000, 12001);
+    }));
+
+    captured.frames.clear();
+    struct tcp_pcb* tcp = tcp_new();
+    ASSERT_NE(nullptr, tcp);
+    ASSERT_EQ(ERR_OK, tcp_bind(tcp, IP_ADDR_ANY, 10000));
+    ASSERT_EQ(ERR_OK, tcp_connect(tcp, &host_addr, 80, tcp_connected_noop));
+    ASSERT_FALSE(captured.frames.empty());
+    EXPECT_TRUE(has_frame_matching(captured, [](const std::vector<uint8_t>& frame) {
+        return is_ipv4_proto(frame, 6);
+    }));
+    tcp_abort(tcp);
+
+    struct tcp_pcb* listener = tcp_new();
+    ASSERT_NE(nullptr, listener);
+    ASSERT_EQ(ERR_OK, tcp_bind(listener, IP_ADDR_ANY, 8080));
+    struct tcp_pcb* listen_pcb = tcp_listen(listener);
+    ASSERT_NE(nullptr, listen_pcb);
+    tcp_close(listen_pcb);
+
+    captured.frames.clear();
+    dns_setserver(0, &host_addr);
+    ip_addr_t resolved;
+    ASSERT_EQ(ERR_INPROGRESS,
+              dns_gethostbyname("example.com", &resolved, dns_found_noop, nullptr));
+    ASSERT_FALSE(captured.frames.empty());
+    EXPECT_TRUE(has_frame_matching(captured, is_dns_query_to_host));
+
+    captured.frames.clear();
+    ASSERT_EQ(ERR_OK, dhcp_start(&iface.netif));
+    ASSERT_FALSE(captured.frames.empty());
+    EXPECT_TRUE(has_frame_matching(captured, is_dhcp_discover));
+    dhcp_stop(&iface.netif);
 }
