@@ -30,6 +30,8 @@ currently supported on Apple Silicon.
 
 See also: [https://www.eantcal.eu/home/mipos](https://www.eantcal.eu/home/mipos).
 For release notes and recent project changes, see [NEWS.md](NEWS.md).
+Wiki-ready pages are maintained under [docs/wiki](docs/wiki) for repositories
+where the GitHub wiki is not enabled yet.
 
 ![mipOS IDE screenshot](mipos_pictures/miposIDE.jpg)
 

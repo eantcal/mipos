@@ -1,5 +1,18 @@
 # NEWS
 
+## Unreleased
+
+- Added optional lwIP coverage for simulator networking, including ARP, ICMP,
+  UDP, TCP, DHCP, and DNS smoke coverage.
+- Added a QEMU ARM network console and self-test firmware using an in-memory
+  Ethernet peer for ARP and ICMP validation.
+- Added the first QEMU `vexpress-a9` bring-up step: PL011 UART output, ARMv7-A
+  startup, critical sections, and a mipOS root task.
+- Added a `virt` QEMU roadmap for future CI-oriented virtio block and network
+  device work.
+- Updated launch scripts and generated Visual Studio QEMU helper targets for
+  the new firmware profiles.
+
 ## 2.1 - 2026-07-07
 
 - Replaced checked-in Visual Studio solution/project files with a CMake-based
