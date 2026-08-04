@@ -4,6 +4,10 @@ option(MIPOS_TARGET_QEMU_ARM
        "Build the bare-metal ARM firmware for QEMU instead of the host simulator"
        OFF)
 
+option(MIPOS_TARGET_QEMU_VEXPRESS_A9
+       "Build the bare-metal ARM firmware for QEMU vexpress-a9 instead of the host simulator"
+       OFF)
+
 if(MIPOS_TARGET_QEMU_ARM)
     # Cross build: requires the arm-none-eabi toolchain, e.g.
     #   cmake -S . -B build-qemu-arm \
@@ -16,6 +20,21 @@ if(MIPOS_TARGET_QEMU_ARM)
     set(CMAKE_C_EXTENSIONS OFF)
 
     include(cmake/qemu-arm.cmake)
+    return()
+endif()
+
+if(MIPOS_TARGET_QEMU_VEXPRESS_A9)
+    # Cross build: requires the arm-none-eabi toolchain, e.g.
+    #   cmake -S . -B build-qemu-vexpress-a9 \
+    #         -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-toolchain.cmake \
+    #         -DMIPOS_TARGET_QEMU_VEXPRESS_A9=ON
+    project(mipos-arm-qemu-vexpress-a9 LANGUAGES C ASM)
+
+    set(CMAKE_C_STANDARD 99)
+    set(CMAKE_C_STANDARD_REQUIRED ON)
+    set(CMAKE_C_EXTENSIONS OFF)
+
+    include(cmake/qemu-vexpress-a9.cmake)
     return()
 endif()
 
@@ -273,7 +292,9 @@ if(MIPOS_ADD_QEMU_RUN_TARGETS)
             mipos_add_qemu_run_target(qemu-filesystem filesystem)
             mipos_add_qemu_run_target(qemu-console console)
             mipos_add_qemu_run_target(qemu-fatfs fatfs)
+            mipos_add_qemu_run_target(qemu-net-console net-console)
             mipos_add_qemu_run_target(qemu-helloworld helloworld)
+            mipos_add_qemu_run_target(qemu-vexpress-helloworld vexpress-helloworld)
         else()
             message(WARNING
                 "PowerShell not found: QEMU run targets will not be added")
@@ -294,7 +315,9 @@ if(MIPOS_ADD_QEMU_RUN_TARGETS)
         mipos_add_qemu_run_target(qemu-filesystem filesystem)
         mipos_add_qemu_run_target(qemu-console console)
         mipos_add_qemu_run_target(qemu-fatfs fatfs)
+        mipos_add_qemu_run_target(qemu-net-console net-console)
         mipos_add_qemu_run_target(qemu-helloworld helloworld)
+        mipos_add_qemu_run_target(qemu-vexpress-helloworld vexpress-helloworld)
     endif()
 endif()
 

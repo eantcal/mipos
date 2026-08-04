@@ -33,16 +33,27 @@
 #define LWIP_NETIF_LOOPBACK             0
 
 #define MEM_ALIGNMENT                   4
+#if defined(MIPOS_TARGET_QEMU_ARM)
+#define MEM_SIZE                        (8 * 1024)
+#define MEMP_NUM_PBUF                   8
+#define MEMP_NUM_TCP_PCB                2
+#define MEMP_NUM_TCP_PCB_LISTEN         1
+#define MEMP_NUM_TCP_SEG                8
+#define MEMP_NUM_UDP_PCB                4
+#define MEMP_NUM_SYS_TIMEOUT            6
+#define PBUF_POOL_SIZE                  4
+#else
 #define MEM_SIZE                        (24 * 1024)
 #define MEMP_NUM_PBUF                   16
-#define MEMP_NUM_NETBUF                 0
-#define MEMP_NUM_NETCONN                0
 #define MEMP_NUM_TCP_PCB                4
 #define MEMP_NUM_TCP_PCB_LISTEN         4
 #define MEMP_NUM_TCP_SEG                16
 #define MEMP_NUM_UDP_PCB                8
 #define MEMP_NUM_SYS_TIMEOUT            8
 #define PBUF_POOL_SIZE                  16
+#endif
+#define MEMP_NUM_NETBUF                 0
+#define MEMP_NUM_NETCONN                0
 #define PBUF_POOL_BUFSIZE               1536
 
 #define TCP_MSS                         536

@@ -43,6 +43,8 @@ void mipos_bsp_rs232_putc(unsigned char c);
 
 #if MIPOS_TARGET_QEMU_ARM
 #include "mipos_bsp_qemu_arm.h"
+#elif MIPOS_TARGET_QEMU_VEXPRESS_A9
+#include "mipos_bsp_qemu_vexpress_a9.h"
 #elif MIPOS_TARGET_STM32 // defined(__ICCARM__)
 #include "mipos_bsp_stm32.h"
 #elif MIPOS_TARGET_STM8 // defined(__CSMC__) || defined(__RCSTM8__)

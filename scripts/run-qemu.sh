@@ -1,12 +1,14 @@
 #!/bin/sh
-# Launch a mipOS ARM firmware under QEMU (board: lm3s6965evb).
+# Launch a mipOS ARM firmware under QEMU.
 #
 # Usage:
 #   ./scripts/run-qemu.sh                # filesystem demo (default)
 #   ./scripts/run-qemu.sh console        # interactive mipOS console (CLI)
 #   ./scripts/run-qemu.sh fatfs          # FatFs over host-backed disk image
+#   ./scripts/run-qemu.sh net-console    # interactive lwIP network console
 #   ./scripts/run-qemu.sh net-selftest   # lwIP ARP/ICMP self-test
 #   ./scripts/run-qemu.sh helloworld     # tick demo
+#   ./scripts/run-qemu.sh vexpress-helloworld # vexpress-a9 boot demo
 #   ./scripts/run-qemu.sh --rebuild      # force a rebuild first
 #   ./scripts/run-qemu.sh --gdb          # start halted with GDB server :1234
 #   ./scripts/run-qemu.sh --help         # show usage
@@ -24,14 +26,16 @@ reset_disk=0
 usage() {
     cat <<EOF
 Usage:
-  $0 [filesystem|console|helloworld|fatfs|net-selftest] [--disk-image <path>] [--reset-disk] [--rebuild] [--gdb]
+  $0 [filesystem|console|helloworld|fatfs|net-console|net-selftest|vexpress-helloworld] [--disk-image <path>] [--reset-disk] [--rebuild] [--gdb]
 
 Firmware:
   filesystem    interactive mipOS tiny filesystem demo (default)
   console       interactive mipOS console
   helloworld    boot demo that prints periodic ticks
   fatfs         FatFs demo backed by build-qemu-arm/qemu-fatfs.img
+  net-console   interactive lwIP console with an in-memory Ethernet peer
   net-selftest  lwIP ARP/ICMP self-test with an in-memory link
+  vexpress-helloworld  vexpress-a9 UART/root-task boot demo
 
 Options:
   --disk-image  source FAT image copied to qemu-fatfs.img when it is missing
@@ -46,7 +50,7 @@ EOF
 while [ "$#" -gt 0 ]; do
     arg="$1"
     case "$arg" in
-        filesystem | console | helloworld | fatfs | net-selftest) firmware="$arg" ;;
+        filesystem | console | helloworld | fatfs | net-console | net-selftest | vexpress-helloworld) firmware="$arg" ;;
         --disk-image)
             shift
             disk_image="${1:-}"
@@ -71,13 +75,20 @@ while [ "$#" -gt 0 ]; do
 done
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
-build_dir="$repo_root/build-qemu-arm"
+
+if [ "$firmware" = vexpress-helloworld ]; then
+    build_dir="$repo_root/build-qemu-vexpress-a9"
+else
+    build_dir="$repo_root/build-qemu-arm"
+fi
 
 case "$firmware" in
     filesystem) elf="$build_dir/mipos-arm-qemu-filesystem.elf" ;;
     console) elf="$build_dir/mipos-arm-qemu-console.elf" ;;
     fatfs) elf="$build_dir/mipos-arm-qemu-fatfs.elf" ;;
+    net-console) elf="$build_dir/mipos-arm-qemu-net-console.elf" ;;
     net-selftest) elf="$build_dir/mipos-arm-qemu-net-selftest.elf" ;;
+    vexpress-helloworld) elf="$build_dir/mipos-arm-qemu-vexpress-a9.elf" ;;
     helloworld) elf="$build_dir/mipos-arm-qemu.elf" ;;
 esac
 qemu_fat_image="$build_dir/qemu-fatfs.img"
@@ -93,9 +104,16 @@ if [ "$rebuild" = 1 ] || [ ! -f "$elf" ]; then
         exit 1
     }
 
-    cmake_args="-DMIPOS_TARGET_QEMU_ARM=ON"
+    if [ "$firmware" = vexpress-helloworld ]; then
+        cmake_args="-DMIPOS_TARGET_QEMU_VEXPRESS_A9=ON"
+    else
+        cmake_args="-DMIPOS_TARGET_QEMU_ARM=ON"
+    fi
     if [ "$firmware" = net-selftest ]; then
         cmake_args="$cmake_args -DMIPOS_QEMU_ARM_NET_SELFTEST=ON"
+    fi
+    if [ "$firmware" = net-console ]; then
+        cmake_args="$cmake_args -DMIPOS_QEMU_ARM_NET_CONSOLE=ON"
     fi
 
     cmake -S "$repo_root" -B "$build_dir" \
@@ -120,7 +138,13 @@ if [ "$firmware" = fatfs ]; then
     fi
 fi
 
-set -- -M lm3s6965evb -kernel "$elf" -nographic -serial mon:stdio
+if [ "$firmware" = vexpress-helloworld ]; then
+    qemu_machine=vexpress-a9
+else
+    qemu_machine=lm3s6965evb
+fi
+
+set -- -M "$qemu_machine" -kernel "$elf" -nographic -serial mon:stdio
 if [ "$firmware" = fatfs ]; then
     set -- "$@" -semihosting-config enable=on,target=native
 fi

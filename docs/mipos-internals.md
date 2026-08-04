@@ -1020,12 +1020,65 @@ start|stop|status` controls the DHCP client, and `dns server <ip>` plus
 addressing; it does not create a DHCP server, so DHCP only completes if some
 service on that Layer-2 segment answers the discover.
 
-The QEMU ARM self-test builds the same lwIP netif adapter into firmware and
-uses an in-memory link peer to validate ARP and ICMP under the ARM/QEMU
-configuration:
+The QEMU ARM network console builds the same lwIP netif adapter into firmware
+and uses an in-memory Ethernet peer to exercise ARP and ICMP interactively
+under the ARM/QEMU configuration:
+
+```powershell
+.\scripts\run-qemu.ps1 net-console
+```
+
+The firmware exposes:
+
+```text
+mipOS-net> ip
+mipOS-net> peer
+mipOS-net> route
+mipOS-net> arp
+mipOS-net> ping
+mipOS-net> stats
+```
+
+The default mipOS IP is `192.168.1.2`; the synthetic peer and gateway are
+`192.168.1.10`. This deliberately keeps the driver boundary small: the peer
+can later be replaced by a Stellaris Ethernet MMIO backend without changing
+the console command surface.
+
+The non-interactive QEMU ARM self-test uses the same in-memory link peer:
 
 ```powershell
 .\scripts\run-qemu.ps1 net-selftest
+```
+
+On Linux or WSL, `scripts/run-qemu.sh net-console` can launch an already-built
+ELF with only `qemu-system-arm` installed. Rebuilding from that environment
+also requires the ARM bare-metal toolchain, typically `arm-none-eabi-gcc`.
+
+### QEMU board profiles
+
+The ARM QEMU work is deliberately split by purpose:
+
+| Profile | Machine | Purpose | Current status |
+|---|---|---|---|
+| Cortex-M workhorse | `lm3s6965evb` | Existing firmware demos and lwIP in-memory tests | Runnable: console, filesystem, FatFs, net-console, net-selftest |
+| Didactic historical board | `vexpress-a9` | Classic ARMv7-A bring-up with fixed MMIO devices | Runnable first step: PL011 UART, startup, critical sections, mipOS root task |
+| Functional/CI future board | `virt` | Current QEMU machine with configurable virtio devices | Roadmap under `mipos/arch/qemu-virt/` |
+
+The `vexpress-a9` path is intentionally educational: the next useful layers are
+GIC/timer, PL181 SD, and LAN9118 Ethernet. The `virt` path is the better future
+CI target because it can model virtio-mmio block and network devices in a way
+that is easier to automate and less tied to historical evaluation-board silicon.
+
+The current `vexpress-a9` smoke firmware runs with:
+
+```powershell
+.\scripts\run-qemu.ps1 vexpress-helloworld
+```
+
+or, from Linux/WSL after the ELF has been built:
+
+```sh
+./scripts/run-qemu.sh vexpress-helloworld
 ```
 
 ## 14. The porting layer (BSP)
@@ -1033,7 +1086,7 @@ configuration:
 A port provides one header (+ optional sources) included via `mipos_bsp.h`
 according to the target switch (`MIPOS_TARGET_SIMU`, `MIPOS_TARGET_QEMU_ARM`,
 `MIPOS_TARGET_STM32`, `MIPOS_TARGET_STM8`). The contract, distilled from the
-current four ports:
+current ports:
 
 **Context and stack switching** (the heart of §9):
 
@@ -1056,13 +1109,14 @@ in a single-threaded process needs none).
 time; `mipos_bsp_setup_clk/reset_and_wd/exception_vector`, watchdog kicks,
 and `STACK_UNIT`/endianness macros as trivial glue.
 
-How the four ports fill the contract:
+How the current ports fill the contract:
 
 | Port | Context switch | Stack switch | Tick source |
 |---|---|---|---|
 | `simu` GCC/Clang (Linux/macOS, x86/x64/AArch64) | libc `setjmp`/`longjmp` | inline asm (x86) / `bsp_gnu.S` (x64, ARM64) | host clock, epoch hook |
 | `simu` MSVC (Win32/x64) | x86: `setjmp`; x64: custom MASM (saves r/XMM/MxCsr) | inline `__asm` (x86) / `bspX64.asm` | `GetTickCount64`, epoch hook |
 | `qemu-arm` (Cortex-M3, arm-none-eabi) | newlib `setjmp`/`longjmp` | inline asm on MSP | SysTick ISR → epoch drain |
+| `qemu-vexpress-a9` (Cortex-A9, arm-none-eabi) | newlib `setjmp`/`longjmp` | inline asm, ARM mode stacks | epoch hook placeholder; GIC/timer next |
 | `stm32`/`ctxm3` (IAR) | `_ctxm3_setjmp`/`_ctxm3_longjmp` (hand-written) | MSP/PSP via `MSR` | HW timer ISR |
 
 **Writing a new port**, in the order that gets a LED blinking fastest:

@@ -306,12 +306,33 @@ Linux TAP device, prefer `--ensure-tap`, which uses the direct TAP backend.
 Wintun is a useful future backend for Layer-3 IP packet tests, but it does not
 expose Ethernet/ARP frames, so TAP is the better first target for ARP and ping.
 
-### QEMU ARP/ICMP self-test
+### QEMU network console and self-test
 
-The QEMU port can also build a cross-compiled lwIP self-test firmware. It uses
-the same `netif` adapter with an in-memory link, so it validates ARP and ICMP
-inside the ARM/QEMU environment while the real Stellaris Ethernet driver is
-still pending:
+The QEMU port can also build cross-compiled lwIP firmware. The interactive
+network console uses the same `netif` adapter with an in-memory Ethernet peer,
+so it validates ARP and ICMP inside the ARM/QEMU environment while the real
+Stellaris Ethernet driver is still pending:
+
+```powershell
+.\scripts\run-qemu.ps1 net-console
+```
+
+Inside QEMU:
+
+```text
+mipOS-net> ip
+mipOS-net> peer
+mipOS-net> route
+mipOS-net> arp
+mipOS-net> ping
+mipOS-net> stats
+```
+
+The default mipOS address is `192.168.1.2`; the in-memory peer and gateway are
+`192.168.1.10`. This is a firmware-level lwIP exercise, not a host-routed QEMU
+NIC path yet.
+
+For the non-interactive self-test:
 
 ```powershell
 cmake -S . -B build-qemu-arm -G Ninja `
@@ -363,7 +384,7 @@ cmake -S . -B build-qemu-arm \
 cmake --build build-qemu-arm --parallel
 ```
 
-This produces four firmwares (each with `.elf`, `.bin`, and `.map`):
+This produces the base firmwares (each with `.elf`, `.bin`, and `.map`):
 
 - `mipos-arm-qemu.elf` - hello-world demo: boots mipOS and prints a tick
   every second
@@ -373,6 +394,10 @@ This produces four firmwares (each with `.elf`, `.bin`, and `.map`):
   mipOS tiny filesystem; try `ls` and `cat test1`
 - `mipos-arm-qemu-fatfs.elf` - interactive console with FatFs over a
   host-backed block device through QEMU semihosting
+- `mipos-arm-qemu-net-console.elf` - optional lwIP network console, enabled by
+  the launch script when selected
+- `mipos-arm-qemu-net-selftest.elf` - optional lwIP ARP/ICMP self-test, enabled
+  by the launch script when selected
 
 ### Run
 
@@ -382,14 +407,17 @@ The launch scripts build the firmware on first use and start QEMU:
 .\scripts\run-qemu.ps1                # filesystem demo
 .\scripts\run-qemu.ps1 console        # mipOS console (CLI)
 .\scripts\run-qemu.ps1 fatfs          # FatFs host-backed block device
+.\scripts\run-qemu.ps1 net-console    # lwIP network console
 .\scripts\run-qemu.ps1 net-selftest   # lwIP ARP/ICMP self-test
 .\scripts\run-qemu.ps1 helloworld     # tick demo
+.\scripts\run-qemu.ps1 vexpress-helloworld  # vexpress-a9 UART/root-task demo
 ```
 
 Generated Visual Studio solutions also include utility targets under
-`QEMU Examples`: `qemu-filesystem`, `qemu-console`, `qemu-fatfs`, and
-`qemu-helloworld`. Build one of those targets to launch the corresponding
-firmware through `scripts/run-qemu.ps1`.
+`QEMU Examples`: `qemu-filesystem`, `qemu-console`, `qemu-fatfs`,
+`qemu-net-console`, `qemu-helloworld`, and `qemu-vexpress-helloworld`. Build
+one of those targets to launch the corresponding firmware through
+`scripts/run-qemu.ps1`.
 
 From `cmd.exe` on Windows, use the wrapper:
 
@@ -397,23 +425,58 @@ From `cmd.exe` on Windows, use the wrapper:
 scripts\run-qemu.cmd                  rem filesystem demo
 scripts\run-qemu.cmd console          rem mipOS console (CLI)
 scripts\run-qemu.cmd fatfs            rem FatFs host-backed block device
+scripts\run-qemu.cmd net-console      rem lwIP network console
 scripts\run-qemu.cmd net-selftest     rem lwIP ARP/ICMP self-test
 scripts\run-qemu.cmd helloworld       rem tick demo
+scripts\run-qemu.cmd vexpress-helloworld  rem vexpress-a9 UART/root-task demo
 ```
 
 ```sh
 ./scripts/run-qemu.sh                 # filesystem demo
 ./scripts/run-qemu.sh console         # mipOS console (CLI)
 ./scripts/run-qemu.sh fatfs           # FatFs host-backed block device
+./scripts/run-qemu.sh net-console     # lwIP network console
 ./scripts/run-qemu.sh net-selftest    # lwIP ARP/ICMP self-test
 ./scripts/run-qemu.sh helloworld      # tick demo
+./scripts/run-qemu.sh vexpress-helloworld  # vexpress-a9 UART/root-task demo
 ```
+
+On Linux or WSL, `run-qemu.sh` can launch an already-built firmware with only
+`qemu-system-arm` installed. If the selected ELF is missing, or if you pass
+`--rebuild`, install the ARM bare-metal toolchain too, for example
+`arm-none-eabi-gcc` plus CMake.
 
 or run QEMU directly:
 
 ```sh
 qemu-system-arm -M lm3s6965evb \
     -kernel build-qemu-arm/mipos-arm-qemu.elf \
+    -nographic -serial mon:stdio
+```
+
+### Board profiles
+
+mipOS intentionally keeps three ARM QEMU profiles side by side:
+
+- `lm3s6965evb` is the current Cortex-M3 workhorse: console, filesystem,
+  FatFs semihosting, and lwIP in-memory ARP/ICMP tests already run there.
+- `vexpress-a9` is the didactic historical board. The first step is runnable
+  today with `vexpress-helloworld`: startup, PL011 UART, ARM mode stacks,
+  critical sections, and a mipOS root task. Timer/GIC, PL181 SD, and LAN9118
+  Ethernet are deliberately the next bring-up steps.
+- `virt` is the future functional/CI board. The planned port lives under
+  `mipos/arch/qemu-virt/` and should use PL011 first, then the ARM generic
+  timer/GIC, followed by virtio-mmio block and network devices.
+
+Build the current `vexpress-a9` firmware directly with:
+
+```sh
+cmake -S . -B build-qemu-vexpress-a9 \
+      -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-toolchain.cmake \
+      -DMIPOS_TARGET_QEMU_VEXPRESS_A9=ON
+cmake --build build-qemu-vexpress-a9 --parallel
+qemu-system-arm -M vexpress-a9 \
+    -kernel build-qemu-vexpress-a9/mipos-arm-qemu-vexpress-a9.elf \
     -nographic -serial mon:stdio
 ```
 

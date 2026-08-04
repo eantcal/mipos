@@ -4,8 +4,10 @@
 #   .\scripts\run-qemu.ps1                 # filesystem demo (default)
 #   .\scripts\run-qemu.ps1 console         # interactive mipOS console (CLI)
 #   .\scripts\run-qemu.ps1 fatfs           # FatFs over host-backed disk image
+#   .\scripts\run-qemu.ps1 net-console     # interactive lwIP network console
 #   .\scripts\run-qemu.ps1 net-selftest    # lwIP ARP/ICMP self-test
 #   .\scripts\run-qemu.ps1 helloworld      # tick demo
+#   .\scripts\run-qemu.ps1 vexpress-helloworld # vexpress-a9 boot demo
 #   .\scripts\run-qemu.ps1 -Rebuild        # force a rebuild first
 #   .\scripts\run-qemu.ps1 -Gdb            # start halted with GDB server :1234
 #   .\scripts\run-qemu.ps1 -Help           # show usage
@@ -15,7 +17,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('filesystem', 'console', 'helloworld', 'fatfs', 'net-selftest')]
+    [ValidateSet('filesystem', 'console', 'helloworld', 'fatfs', 'net-console', 'net-selftest', 'vexpress-helloworld')]
     [string]$Firmware = 'filesystem',
 
     [string]$DiskImage,
@@ -30,14 +32,16 @@ $ErrorActionPreference = 'Stop'
 if ($Help) {
     @'
 Usage:
-  .\scripts\run-qemu.ps1 [filesystem|console|helloworld|fatfs|net-selftest] [-DiskImage <path>] [-ResetDisk] [-Rebuild] [-Gdb]
+  .\scripts\run-qemu.ps1 [filesystem|console|helloworld|fatfs|net-console|net-selftest|vexpress-helloworld] [-DiskImage <path>] [-ResetDisk] [-Rebuild] [-Gdb]
 
 Firmware:
   filesystem    interactive mipOS tiny filesystem demo (default)
   console       interactive mipOS console
   helloworld    boot demo that prints periodic ticks
   fatfs         FatFs demo backed by build-qemu-arm\qemu-fatfs.img
+  net-console   interactive lwIP console with an in-memory Ethernet peer
   net-selftest  lwIP ARP/ICMP self-test with an in-memory link
+  vexpress-helloworld  vexpress-a9 UART/root-task boot demo
 
 Options:
   -DiskImage    source FAT image copied to qemu-fatfs.img when it is missing
@@ -51,13 +55,19 @@ Quit QEMU with Ctrl-A x.
 }
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$buildDir = Join-Path $repoRoot 'build-qemu-arm'
+if ($Firmware -eq 'vexpress-helloworld') {
+    $buildDir = Join-Path $repoRoot 'build-qemu-vexpress-a9'
+} else {
+    $buildDir = Join-Path $repoRoot 'build-qemu-arm'
+}
 
 $elfName = switch ($Firmware) {
     'filesystem' { 'mipos-arm-qemu-filesystem.elf' }
     'console' { 'mipos-arm-qemu-console.elf' }
     'fatfs' { 'mipos-arm-qemu-fatfs.elf' }
+    'net-console' { 'mipos-arm-qemu-net-console.elf' }
     'net-selftest' { 'mipos-arm-qemu-net-selftest.elf' }
+    'vexpress-helloworld' { 'mipos-arm-qemu-vexpress-a9.elf' }
     default { 'mipos-arm-qemu.elf' }
 }
 $elf = Join-Path $buildDir $elfName
@@ -91,11 +101,18 @@ if ($Rebuild -or -not (Test-Path $elf)) {
         '-S', $repoRoot,
         '-B', $buildDir,
         '-G', 'Ninja',
-        "-DCMAKE_TOOLCHAIN_FILE=$repoRoot\cmake\arm-none-eabi-toolchain.cmake",
-        '-DMIPOS_TARGET_QEMU_ARM=ON'
+        "-DCMAKE_TOOLCHAIN_FILE=$repoRoot\cmake\arm-none-eabi-toolchain.cmake"
     )
+    if ($Firmware -eq 'vexpress-helloworld') {
+        $cmakeArgs += '-DMIPOS_TARGET_QEMU_VEXPRESS_A9=ON'
+    } else {
+        $cmakeArgs += '-DMIPOS_TARGET_QEMU_ARM=ON'
+    }
     if ($Firmware -eq 'net-selftest') {
         $cmakeArgs += '-DMIPOS_QEMU_ARM_NET_SELFTEST=ON'
+    }
+    if ($Firmware -eq 'net-console') {
+        $cmakeArgs += '-DMIPOS_QEMU_ARM_NET_CONSOLE=ON'
     }
 
     cmake @cmakeArgs
@@ -121,7 +138,8 @@ if ($Firmware -eq 'fatfs') {
 }
 
 # --- run ------------------------------------------------------------------
-$qemuArgs = @('-M', 'lm3s6965evb', '-kernel', $elf, '-nographic',
+$machine = if ($Firmware -eq 'vexpress-helloworld') { 'vexpress-a9' } else { 'lm3s6965evb' }
+$qemuArgs = @('-M', $machine, '-kernel', $elf, '-nographic',
               '-serial', 'mon:stdio')
 if ($Firmware -eq 'fatfs') {
     $qemuArgs += @('-semihosting-config', 'enable=on,target=native')

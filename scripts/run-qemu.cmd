@@ -4,7 +4,11 @@ rem
 rem Usage:
 rem   scripts\run-qemu.cmd                 filesystem demo
 rem   scripts\run-qemu.cmd console         interactive mipOS console (CLI)
+rem   scripts\run-qemu.cmd fatfs           FatFs host-backed block device
+rem   scripts\run-qemu.cmd net-console     interactive lwIP network console
+rem   scripts\run-qemu.cmd net-selftest    lwIP ARP/ICMP self-test
 rem   scripts\run-qemu.cmd helloworld      tick demo
+rem   scripts\run-qemu.cmd vexpress-helloworld  vexpress-a9 boot demo
 rem   scripts\run-qemu.cmd console -Gdb    start halted with GDB server :1234
 rem
 rem All arguments are forwarded to scripts\run-qemu.ps1.
