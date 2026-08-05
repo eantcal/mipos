@@ -98,6 +98,6 @@ enough to replace as QEMU and physical targets mature.
 
 ## Related pages
 
-- [Architecture](Architecture.md)
-- [QEMU ARM Targets](QEMU-ARM-Targets.md)
-- [Build and Test](Build-and-Test.md)
+- [Architecture](Architecture)
+- [QEMU ARM Targets](QEMU-ARM-Targets)
+- [Build and Test](Build-and-Test)

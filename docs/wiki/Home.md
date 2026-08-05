@@ -64,13 +64,13 @@ by the application, which keeps RAM usage visible and auditable.
 
 ## Pages
 
-- [Architecture](Architecture.md)
-- [Programming Model](Programming-Model.md)
-- [Supported Targets](Supported-Targets.md)
-- [Build and Test](Build-and-Test.md)
-- [QEMU ARM Targets](QEMU-ARM-Targets.md)
-- [Networking](Networking.md)
-- [Porting Guide](Porting-Guide.md)
+- [Architecture](Architecture)
+- [Programming Model](Programming-Model)
+- [Supported Targets](Supported-Targets)
+- [Build and Test](Build-and-Test)
+- [QEMU ARM Targets](QEMU-ARM-Targets)
+- [Networking](Networking)
+- [Porting Guide](Porting-Guide)
 
 ## Repository documentation
 

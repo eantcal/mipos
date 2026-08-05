@@ -78,6 +78,6 @@ Planned order:
 6. Optional device-tree parsing after the fixed bootstrap path is stable.
 ## Related pages
 
-- [Supported Targets](Supported-Targets.md)
-- [Build and Test](Build-and-Test.md)
-- [Porting Guide](Porting-Guide.md)
+- [Supported Targets](Supported-Targets)
+- [Build and Test](Build-and-Test)
+- [Porting Guide](Porting-Guide)
