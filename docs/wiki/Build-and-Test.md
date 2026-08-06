@@ -68,6 +68,7 @@ Cortex-M QEMU firmware:
 .\scripts\run-qemu.ps1 console
 .\scripts\run-qemu.ps1 filesystem
 .\scripts\run-qemu.ps1 fatfs
+# FatFs host-backed block device; details: Storage And FatFs wiki page
 .\scripts\run-qemu.ps1 net-console
 .\scripts\run-qemu.ps1 net-selftest
 ```

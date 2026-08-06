@@ -94,7 +94,8 @@ mipOS keeps optional services separate from the kernel core:
 - the console provides a small command shell and command registration API;
 - stdio support connects formatted output to the BSP serial path;
 - the tiny filesystem demonstrates compact in-memory file handling;
-- FatFs support uses `mipos_diskio` as the block-device bridge;
+- FatFs support uses `mipos_diskio` as the block-device bridge; see
+  [Storage And FatFs](Storage-FatFs);
 - lwIP integration is optional and currently focused on IPv4/Ethernet tests.
 
 This lets very small targets build only the kernel features they need, while
@@ -128,3 +129,4 @@ timer, then run the console without disturbing scheduling.
 - [Programming Model](Programming-Model)
 - [Supported Targets](Supported-Targets)
 - [Porting Guide](Porting-Guide)
+- [Storage And FatFs](Storage-FatFs)

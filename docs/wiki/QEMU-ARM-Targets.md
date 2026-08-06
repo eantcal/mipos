@@ -92,6 +92,18 @@ cmake -S . -B build-qemu-arm \
 cmake --build build-qemu-arm --parallel
 ```
 
+
+### FatFs Host-Disk Path
+
+The `fatfs` firmware mounts `build-qemu-arm/qemu-fatfs.img` as FatFs drive `0:`
+through QEMU semihosting. The firmware registers
+`mipos_qemu_hostdisk_driver()`, then calls `f_mount(&g_fat_fs, "0:", 1)` and
+exposes `ls`, `cd`, `pwd`, `cat`, and `write` console commands.
+
+Use this target when changing `mipos_diskio`, FatFs glue, semihosting, or future
+block-device work. The detailed storage path is documented in
+[Storage And FatFs](Storage-FatFs).
+
 ### Expected network self-test
 
 ```text
@@ -221,4 +233,5 @@ Then connect with `arm-none-eabi-gdb` and `target remote :1234`.
 - [Supported Targets](Supported-Targets)
 - [Build and Test](Build-and-Test)
 - [Networking](Networking)
+- [Storage And FatFs](Storage-FatFs)
 - [Porting Guide](Porting-Guide)

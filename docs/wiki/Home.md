@@ -100,6 +100,7 @@ This is why the repository now keeps simulator builds, QEMU `lm3s6965evb`, QEMU
 - [QEMU ARM Targets](QEMU-ARM-Targets)
 - [STM8 SDCC](STM8-SDCC)
 - [Networking](Networking)
+- [Storage And FatFs](Storage-FatFs)
 - [Porting Guide](Porting-Guide)
 
 ## Repository documentation
