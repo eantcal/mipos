@@ -113,8 +113,8 @@ void mipos_bsp_create_hw_rtc_timer(void)
 /* -------------------------------------------------------------------------- */
 
 #ifdef __SDCC
-void* mipos_get_sp()
+void* mipos_get_sp(void)
 {
-    __asm LDW X, SP ADDW X, #2 __endasm;
+    __asm__("ldw x, sp\n" "addw x, #2\n");
 }
 #endif

@@ -8,6 +8,10 @@ option(MIPOS_TARGET_QEMU_VEXPRESS_A9
        "Build the bare-metal ARM firmware for QEMU vexpress-a9 instead of the host simulator"
        OFF)
 
+option(MIPOS_TARGET_STM8_SDCC
+       "Build the STM8 firmware with the Small Device C Compiler"
+       OFF)
+
 if(MIPOS_TARGET_QEMU_ARM)
     # Cross build: requires the arm-none-eabi toolchain, e.g.
     #   cmake -S . -B build-qemu-arm \
@@ -35,6 +39,15 @@ if(MIPOS_TARGET_QEMU_VEXPRESS_A9)
     set(CMAKE_C_EXTENSIONS OFF)
 
     include(cmake/qemu-vexpress-a9.cmake)
+    return()
+endif()
+
+if(MIPOS_TARGET_STM8_SDCC)
+    # Cross build: requires SDCC with STM8 support, e.g.
+    #   cmake -S . -B build-stm8-sdcc -DMIPOS_TARGET_STM8_SDCC=ON
+    project(mipos-stm8-sdcc LANGUAGES NONE)
+
+    include(cmake/stm8-sdcc.cmake)
     return()
 endif()
 

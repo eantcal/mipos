@@ -87,6 +87,37 @@ cmake -S . -B build-qemu-vexpress-a9 \
 cmake --build build-qemu-vexpress-a9 --parallel
 ```
 
+
+## STM8 SDCC Build
+
+The STM8 port has an optional SDCC build path:
+
+```sh
+cmake -S . -B build-stm8-sdcc -DMIPOS_TARGET_STM8_SDCC=ON
+cmake --build build-stm8-sdcc --target stm8-sdcc-helloworld --parallel
+```
+
+The output image is:
+
+```text
+build-stm8-sdcc/stm8-sdcc/stm8s_example.ihx
+```
+
+Helper scripts build the image and can start the STM8 simulator when uCsim is installed:
+
+```powershell
+.\scripts\run-stm8-sdcc.ps1
+.\scripts\run-stm8-sdcc.ps1 -Sim
+```
+
+```sh
+sh scripts/run-stm8-sdcc.sh
+sh scripts/run-stm8-sdcc.sh --sim
+```
+
+CI includes an `stm8-sdcc` job that installs SDCC, builds the firmware, and
+checks that the Intel HEX image is produced.
+
 ## CI expectations
 
 CI should keep simulator builds green across supported hosts and keep QEMU ARM

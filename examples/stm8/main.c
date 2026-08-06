@@ -61,7 +61,7 @@ int root_task(task_param_t param)
 
 /* ------------------------------------------------------------------------- */
 
-int main()
+int main(void)
 {
     // Start mipOS root task
     mipos_start(root_task, 0, root_stack, sizeof(root_stack));

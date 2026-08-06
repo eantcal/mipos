@@ -73,6 +73,7 @@ linker maps, which matters on small devices.
 - Optional lwIP-based IPv4 networking experiments.
 - Host simulator builds for Windows, Linux, and macOS.
 - Bare-metal QEMU ARM firmware for Cortex-M and early Cortex-A work.
+- Optional STM8 firmware builds with SDCC.
 
 ![mipOS running on an evaluation board](https://raw.githubusercontent.com/eantcal/mipos/main/mipos_pictures/mipos2.jpg)
 
@@ -97,6 +98,7 @@ This is why the repository now keeps simulator builds, QEMU `lm3s6965evb`, QEMU
 - [Supported Targets](Supported-Targets)
 - [Build and Test](Build-and-Test)
 - [QEMU ARM Targets](QEMU-ARM-Targets)
+- [STM8 SDCC](STM8-SDCC)
 - [Networking](Networking)
 - [Porting Guide](Porting-Guide)
 

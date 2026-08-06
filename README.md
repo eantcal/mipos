@@ -137,6 +137,8 @@ registered on that host architecture.
 - GoogleTest covers queues, memory pools, and malloc behavior.
 - `mipos_scheduler_smoke` exercises cooperative scheduling on supported
   simulator hosts: Linux x64/x86 and Windows x64/Win32.
+- Optional STM8 firmware builds can be enabled with `-DMIPOS_TARGET_STM8_SDCC=ON`
+  when SDCC is installed.
 - Optional networking can be enabled with `-DMIPOS_NET_STACK=lwip`. The current
   lwIP port is `NO_SYS=1`, IPv4/Ethernet only, and enables ARP, ICMP, UDP,
   TCP raw APIs, DHCP client, and DNS client. IPv6, sockets, and netconn are
@@ -344,6 +346,48 @@ cmake -S . -B build-qemu-arm -G Ninja `
 cmake --build build-qemu-arm --target mipos-arm-qemu-net-selftest
 .\scripts\run-qemu.ps1 net-selftest
 ```
+
+
+## STM8 SDCC build
+
+The STM8 port has an optional build path for the Small Device C Compiler. This
+keeps the historical 8-bit BSP usable with a free toolchain instead of requiring
+older proprietary compilers.
+
+Requirements:
+
+- `sdcc` with STM8 support;
+- optional `ucsim_stm8`/`sstm8` from `sdcc-ucsim` for CPU-level simulation.
+
+Build directly with CMake:
+
+```sh
+cmake -S . -B build-stm8-sdcc -DMIPOS_TARGET_STM8_SDCC=ON
+cmake --build build-stm8-sdcc --target stm8-sdcc-helloworld --parallel
+```
+
+The output image is:
+
+```text
+build-stm8-sdcc/stm8-sdcc/stm8s_example.ihx
+```
+
+Or use the helper scripts:
+
+```powershell
+.\scripts\run-stm8-sdcc.ps1
+.\scripts\run-stm8-sdcc.ps1 -Sim
+```
+
+```sh
+sh scripts/run-stm8-sdcc.sh
+sh scripts/run-stm8-sdcc.sh --sim
+```
+
+The simulation option starts uCsim's STM8 simulator when it is available. This is an
+early CPU/toolchain simulation baseline; it is not yet a complete STM8S board
+model with fully automated UART and timer behavior. CI builds the SDCC firmware
+and verifies that the Intel HEX image is produced.
 
 ## Examples
 

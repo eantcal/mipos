@@ -7,8 +7,9 @@ how the same kernel contracts map onto real or emulated hardware.
 The target model is selected mostly at the BSP boundary. `mipos_bsp.h` chooses
 between `MIPOS_TARGET_SIMU`, `MIPOS_TARGET_QEMU_ARM`,
 `MIPOS_TARGET_QEMU_VEXPRESS_A9`, `MIPOS_TARGET_STM32`, and `MIPOS_TARGET_STM8`.
-Modern CMake builds cover the simulator and QEMU targets; historical physical
-ports remain in the tree as reference implementations.
+Modern CMake builds cover the simulator, QEMU targets, and an optional STM8
+SDCC build; historical physical ports remain in the tree as reference
+implementations.
 
 ## Target status matrix
 
@@ -21,7 +22,7 @@ ports remain in the tree as reference implementations.
 | QEMU `lm3s6965evb` | Cortex-M3 | `MIPOS_TARGET_QEMU_ARM` | Active workhorse | bare-metal console, filesystem, FatFs, lwIP self-tests |
 | QEMU `vexpress-a9` | Cortex-A9 | `MIPOS_TARGET_QEMU_VEXPRESS_A9` | Early bring-up | didactic ARMv7-A startup, PL011 UART, root task |
 | QEMU `virt` | virtual ARM platform | roadmap | Planned | future CI-friendly virtio block/network target |
-| STM8/ST7 family | 8-bit MCU | historical toolchains | Historical | legacy portability reference |
+| STM8/ST7 family | 8-bit MCU | SDCC optional build, historical Cosmic/Raisonance | Build baseline | legacy portability reference and free-toolchain bring-up |
 | STM32/Cortex-M family | Cortex-M | historical/IAR-era port | Historical baseline | physical-board porting reference |
 
 ## Host simulator
@@ -90,6 +91,18 @@ target. It should eventually use:
 The difference from `vexpress-a9` is intentional. `vexpress-a9` is a historical
 teaching board; `virt` is a better long-term automation target.
 
+
+## STM8 SDCC
+
+The STM8 port now has an optional SDCC build path selected with
+`MIPOS_TARGET_STM8_SDCC=ON`. It builds the `examples/stm8` hello-world firmware
+with `sdcc -mstm8` and produces an Intel HEX image. The helper scripts can also
+start uCsim's `ucsim_stm8`/`sstm8` simulator when it is installed.
+
+This is a toolchain and firmware-image baseline, not yet a complete simulated
+STM8S board. The next step is to add a narrower uCsim smoke firmware for startup,
+cooperative scheduling, and serial I/O.
+
 ## Physical board direction
 
 For a new physical board port with persistent storage and an IP terminal, the
@@ -121,7 +134,7 @@ Reference: [MIMXRT1170-EVKB product page](https://www.nxp.com/design/design-cent
 
 The repository also contains historical embedded support for:
 
-- STM8/ST7-class targets with Cosmic/Raisonance-era tooling;
+- STM8/ST7-class targets with SDCC baseline and Cosmic/Raisonance-era tooling;
 - STM32/Cortex-M-era targets with older embedded toolchains;
 - IAR Embedded Workbench ARM configurations;
 - `ctxm3`, which preserves older Cortex-M3 context-switch support.

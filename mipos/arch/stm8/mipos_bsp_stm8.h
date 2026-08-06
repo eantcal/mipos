@@ -63,18 +63,20 @@ int mipos_bsp_check_reset_type(void);
 // Small Device C Compiler
 #elif defined(__SDCC)
 
-#define mipos_set_sp(__N_SP) __asm LDW X, _##__N_SP + 0 LDW SP, X __endasm;
+#define mipos_set_sp(__N_SP)                                                   \
+    __asm__("ldw x, _" #__N_SP "+0\n" "ldw sp, x\n")
 
 #define mipos_replace_sp(__OLD_SP, __N_SP)                                     \
-    __asm LDW X, SP LDW _##__OLD_SP + 0, X LDW X, _##__N_SP + 0 LDW SP,        \
-      X __endasm;
+    __asm__("ldw x, sp\n"                                                     \
+            "ldw _" #__OLD_SP "+0, x\n"                                      \
+            "ldw x, _" #__N_SP "+0\n"                                       \
+            "ldw sp, x\n")
 
-extern void* mipos_get_sp();
+extern void* mipos_get_sp(void);
 
 #define mipos_init_cs()
 #define mipos_enter_cs() sim()
 #define mipos_leave_cs() rim()
-
 #else // Cosmic // -------------------------------------------------------------
 
 #define mipos_set_sp(__N_SP) _asm("LDW SP,X\n", __N_SP)
@@ -112,6 +114,7 @@ extern void* mipos_get_sp();
 #define inline /*EMPTY*/
 #define MIPOS_IGNORE_TASK_PRIORITY
 #define MIPOS_LONG_LONG_NOT_SUPPORTED
+#define mipos_printf printf
 #define ENABLE_WATCHDOG
 
 /* -------------------------------------------------------------------------- */

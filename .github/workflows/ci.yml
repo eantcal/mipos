@@ -58,6 +58,21 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+  stm8-sdcc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SDCC
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sdcc sdcc-ucsim
+      - name: Configure
+        run: cmake -S . -B build-stm8-sdcc -DMIPOS_TARGET_STM8_SDCC=ON
+      - name: Build
+        run: cmake --build build-stm8-sdcc --target stm8-sdcc-helloworld --parallel
+      - name: Check image
+        run: test -s build-stm8-sdcc/stm8-sdcc/stm8s_example.ihx
+
   qemu-arm:
     runs-on: ubuntu-latest
     steps:
