@@ -108,8 +108,11 @@ static void resolve_default_ramdisk_path(void)
 {
     char dir[1024];
     char path[1024];
+    const char disk_name[] = "disk.img";
+    size_t dir_len;
+    size_t disk_name_len = sizeof(disk_name) - 1;
 
-    if (strcmp(ramdisk_fname, "disk.img") != 0 || file_exists(ramdisk_fname)) {
+    if (strcmp(ramdisk_fname, disk_name) != 0 || file_exists(ramdisk_fname)) {
         return;
     }
 
@@ -117,13 +120,18 @@ static void resolve_default_ramdisk_path(void)
         return;
     }
 
-    snprintf(path, sizeof(path), "%s%c%s", dir,
+    dir_len = strlen(dir);
+    if (dir_len + 1 + disk_name_len >= sizeof(path)) {
+        return;
+    }
+
+    memcpy(path, dir, dir_len);
 #if defined(_WIN32)
-             '\\',
+    path[dir_len] = '\\';
 #else
-             '/',
+    path[dir_len] = '/';
 #endif
-             "disk.img");
+    memcpy(path + dir_len + 1, disk_name, disk_name_len + 1);
 
     if (file_exists(path)) {
         strncpy(ramdisk_fname, path, sizeof(ramdisk_fname) - 1);
