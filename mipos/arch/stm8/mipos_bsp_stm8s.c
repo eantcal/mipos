@@ -90,6 +90,9 @@ void TIM4_UPD_OVF_IRQHandler(void) interrupt 23
 
 void mipos_bsp_create_hw_rtc_timer(void)
 {
+#if MIPOS_STM8_UCSIM
+    return;
+#else
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER4, ENABLE);
 
     /* TimerTick = 1 ms
@@ -107,12 +110,169 @@ void mipos_bsp_create_hw_rtc_timer(void)
     TIM4_UpdateRequestConfig(TIM4_UPDATESOURCE_GLOBAL);
     TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
     TIM4_Cmd(ENABLE);
+#endif
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+#if MIPOS_STM8_UCSIM
+#define MIPOS_STM8_UCSIM_SIMIF (*(volatile unsigned char*)0x5000)
+#ifdef MIPOS_STM8_UCSIM_SCRIPTED_CONSOLE
+static const char* mipos_stm8_ucsim_input = "help\rps\rdump 0 16\r";
+static unsigned int mipos_stm8_ucsim_input_pos = 0;
+#endif
+#endif
+
+void mipos_bsp_configure_rs232(unsigned int baud_rate)
+{
+    if (!baud_rate) {
+        baud_rate = 115200;
+    }
+
+    CLK_PeripheralClockConfig(CLK_PERIPHERAL_UART1, ENABLE);
+    UART1_DeInit();
+    UART1_Init((uint32_t)baud_rate,
+               UART1_WORDLENGTH_8D,
+               UART1_STOPBITS_1,
+               UART1_PARITY_NO,
+               UART1_SYNCMODE_CLOCK_DISABLE,
+               UART1_MODE_TXRX_ENABLE);
+    UART1_Cmd(ENABLE);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+unsigned int mipos_bsp_rs232_recv_byte(unsigned char* key)
+{
+    if (!key) {
+        return 0;
+    }
+
+#if MIPOS_STM8_UCSIM && defined(MIPOS_STM8_UCSIM_SCRIPTED_CONSOLE)
+    if (mipos_stm8_ucsim_input[mipos_stm8_ucsim_input_pos]) {
+        *key = (unsigned char)mipos_stm8_ucsim_input[mipos_stm8_ucsim_input_pos++];
+        return 1;
+    }
+#endif
+
+    if (UART1_GetFlagStatus(UART1_FLAG_RXNE) == RESET) {
+        return 0;
+    }
+
+    *key = UART1_ReceiveData8();
+    return 1;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void mipos_bsp_rs232_putc(unsigned char c)
+{
+    while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET) {
+        ;
+    }
+
+    UART1_SendData8(c);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 #ifdef __SDCC
+void* mipos_bsp_call_task_context;
+
+int mipos_bsp_call1(void* entry_point, void* param) __naked
+{
+    (void)entry_point;
+    (void)param;
+
+    __asm
+        exgw x, y
+        ldw x, (0x03, sp)
+        push #<00001$
+        push #>00001$
+        ld a, yl
+        push a
+        ld a, yh
+        push a
+        ret
+00001$:
+        ldw y, (0x01, sp)
+        addw sp, #4
+        ld a, yl
+        push a
+        ld a, yh
+        push a
+        ret
+    __endasm;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+void mipos_bsp_run_task_from_tcb(void* task_context) __naked
+{
+    (void)task_context;
+
+    __asm
+        ldw _mipos_bsp_call_task_context+0, x
+        ldw y, x
+        ldw y, (0x02, y)
+        ldw x, (0x06, x)
+        push #<00003$
+        push #>00003$
+        ld a, yl
+        push a
+        ld a, yh
+        push a
+        ret
+00003$:
+        ldw y, _mipos_bsp_call_task_context+0
+        ldw (0x04, y), x
+        ret
+    __endasm;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+int mipos_bsp_call2(void* entry_point, int arg0, void* arg1) __naked
+{
+    (void)entry_point;
+    (void)arg0;
+    (void)arg1;
+
+    __asm
+        exgw x, y
+        ldw x, (0x05, sp)
+        ld a, xl
+        push a
+        ld a, xh
+        push a
+        ldw x, (0x05, sp)
+        push #<00002$
+        push #>00002$
+        ld a, yl
+        push a
+        ld a, yh
+        push a
+        ret
+00002$:
+        ldw y, (0x01, sp)
+        addw sp, #6
+        ld a, yl
+        push a
+        ld a, yh
+        push a
+        ret
+    __endasm;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 void* mipos_get_sp(void)
 {
     __asm__("ldw x, sp\n" "addw x, #2\n");

@@ -107,15 +107,22 @@ extern void* mipos_get_sp(void);
 #define mipos_bsp_dbg_device_setup()       /*UNUSED*/
 #define mipos_bps_init_sp()                /*UNUSED*/
 
+#if MIPOS_STM8_UCSIM
+#define mipos_bsp_enable_irq_mask()
+#define mipos_kick_watchdog()
+#else
 #define mipos_bsp_enable_irq_mask() enableInterrupts()
 #define mipos_kick_watchdog() IWDG_ReloadCounter()
+#endif
 
 // Required for simulation code compatibility
 #define inline /*EMPTY*/
 #define MIPOS_IGNORE_TASK_PRIORITY
 #define MIPOS_LONG_LONG_NOT_SUPPORTED
 #define mipos_printf printf
+#if !MIPOS_STM8_UCSIM
 #define ENABLE_WATCHDOG
+#endif
 
 /* -------------------------------------------------------------------------- */
 

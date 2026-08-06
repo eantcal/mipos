@@ -14,6 +14,14 @@
 
 #ifdef ENABLE_MIPOS_CONSOLE
 
+#if defined(__SDCC) && MIPOS_TARGET_STM8
+extern int mipos_bsp_call2(void* entry_point, int arg0, void* arg1);
+#define MIPOS_CALL2(_fn, _arg0, _arg1) \
+    mipos_bsp_call2((void*)(_fn), (int)(_arg0), (void*)(_arg1))
+#else
+#define MIPOS_CALL2(_fn, _arg0, _arg1) (_fn)((_arg0), (_arg1))
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 static int exec_help_command(int argc, char* argv[]);
@@ -193,7 +201,7 @@ static int try_exec_cmd(int argc,
 
     while (cmd_list->cmd_str && cmd_list->cmd_exec) {
         if (argc > 0 && strcmp(argv[0], cmd_list->cmd_str) == 0) {
-            cmd_list->cmd_exec(argc, argv);
+            MIPOS_CALL2(cmd_list->cmd_exec, argc, argv);
             return index_of_cmd;
         }
         ++cmd_list;
@@ -509,6 +517,46 @@ static int exec_help_command(int argc, char* argv[])
 
 /* ------------------------------------------------------------------------- */
 
+#ifdef __SDCC
+static unsigned int mipos_console_parse_uint(const char* text, unsigned int base)
+{
+    unsigned int value = 0;
+
+    while (*text == ' ' || *text == '\t') {
+        ++text;
+    }
+
+    if (base == 16 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X')) {
+        text += 2;
+    }
+
+    while (*text) {
+        unsigned char digit;
+
+        if (*text >= '0' && *text <= '9') {
+            digit = (unsigned char)(*text - '0');
+        } else if (base == 16 && *text >= 'a' && *text <= 'f') {
+            digit = (unsigned char)(*text - 'a' + 10);
+        } else if (base == 16 && *text >= 'A' && *text <= 'F') {
+            digit = (unsigned char)(*text - 'A' + 10);
+        } else {
+            break;
+        }
+
+        if (digit >= base) {
+            break;
+        }
+
+        value = (unsigned int)((value * base) + digit);
+        ++text;
+    }
+
+    return value;
+}
+#endif
+
+/* ------------------------------------------------------------------------- */
+
 static int exec_dump_command(int argc, char* argv[])
 {
     int page = 64;
@@ -526,7 +574,9 @@ static int exec_dump_command(int argc, char* argv[])
         page = atoi(argv[2]);
     }
     if (argc > 1) {
-#if defined(MIPOS64) || defined(MIPOS32)
+#if defined(__SDCC)
+        addr = mipos_console_parse_uint(argv[1], 16);
+#elif defined(MIPOS64) || defined(MIPOS32)
         sscanf(argv[1], "%zx", &addr);
 #else
         sscanf(argv[1], "%x", &addr);
@@ -560,12 +610,20 @@ static int exec_patch_command(int argc, char* argv[])
         return -1L;
     }
 
+#if defined(__SDCC)
+    addr = mipos_console_parse_uint(argv[1], 16);
+#else
 #ifdef MIPOS64
     sscanf(argv[1], "%zx", &addr);
 #else
     sscanf(argv[1], "%x", &addr);
 #endif
+#endif
+#if defined(__SDCC)
+    value = mipos_console_parse_uint(argv[2], 16);
+#else
     sscanf(argv[2], "%x", &value);
+#endif
 
     *((char*)(addr)) = (char)(value & 0xff);
 

@@ -11,6 +11,16 @@
 #include "mipos_kernel.h"
 #include "mipos_bsp.h"
 
+#if defined(__SDCC) && MIPOS_TARGET_STM8
+extern int mipos_bsp_call1(void* entry_point, void* param);
+extern void mipos_bsp_run_task_from_tcb(void* task_context);
+#define MIPOS_CALL1(_fn, _arg) mipos_bsp_call1((void*)(_fn), (void*)(_arg))
+#define MIPOS_RUN_TASK(_task) mipos_bsp_run_task_from_tcb((void*)(_task))
+#else
+#define MIPOS_CALL1(_fn, _arg) (_fn)(_arg)
+#define MIPOS_RUN_TASK(_task) ((_task)->task_ret_value = (_task)->entry_point((_task)->param))
+#endif
+
 #ifndef KERNEL_DBG_DELAY
 #define KERNEL_DBG_DELAY
 #endif
@@ -42,7 +52,7 @@ static int idle_task(task_param_t param)
 
     // Notify to the user that we are in idle state
     if (notify) {
-        notify(param);
+        MIPOS_CALL1(notify, param);
     }
 
     return 0;
@@ -190,7 +200,7 @@ scheduler:
                     mipos_kernel_env.timer_bitmap &= ~tmask;
 
                     if (p_timer->handler_on_cancel_cbk) {
-                        p_timer->handler_on_cancel_cbk(p_timer->context);
+                        MIPOS_CALL1(p_timer->handler_on_cancel_cbk, p_timer->context);
                     }
 
                     // check for next timer
@@ -206,7 +216,7 @@ scheduler:
                     p_timer->flgs |= TIMER_FLG_EXPIRED;
 
                     // finally execute the on-expire handler
-                    p_timer->handler_on_expire_cbk(p_timer->context);
+                    MIPOS_CALL1(p_timer->handler_on_expire_cbk, p_timer->context);
 
                     // if no periodic, de-active it
                     if (!(p_timer->flgs & TIMER_FLG_PERIODIC)) {
@@ -255,7 +265,7 @@ scheduler:
         // RT task handling
         if (p_task->u_flags.flags.rt_task) {
 
-            p_task->task_ret_value = p_task->entry_point(p_task->param);
+            MIPOS_RUN_TASK(p_task);
 
             // Request for scheduling DPC
             if (p_task->task_ret_value) {
@@ -438,7 +448,7 @@ dispatcher:
         mipos_replace_sp(saved_stack_pointer, top_of_the_stack);
 
         // Run the task (first time)
-        p_task->task_ret_value = p_task->entry_point(p_task->param);
+        MIPOS_RUN_TASK(p_task);
 
         mipos_enter_cs();
 

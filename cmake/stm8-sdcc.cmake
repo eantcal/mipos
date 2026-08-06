@@ -15,8 +15,6 @@ find_program(MIPOS_STM8_SIMULATOR NAMES ucsim_stm8 sstm8)
 
 set(MIPOS_STM8_MCU_MODEL "STM8S208" CACHE STRING
     "STM8S/A device define used by the SDCC build")
-set(MIPOS_STM8_OUTPUT_BASENAME "stm8s_example" CACHE STRING
-    "Base name for the generated STM8 firmware image")
 set(MIPOS_STM8_SDCC_FLAGS "--std-c99;--opt-code-size" CACHE STRING
     "Additional SDCC flags for the STM8 build")
 
@@ -34,68 +32,116 @@ set(MIPOS_STM8_DEFINITIONS
     -D${MIPOS_STM8_MCU_MODEL}
 )
 
-set(MIPOS_STM8_SOURCES
-    examples/stm8/main.c
+set(MIPOS_STM8_COMMON_SOURCES
     mipos/mipos_kernel.c
     mipos/mipos_task.c
+    mipos/mipos_timer.c
     mipos/arch/stm8/mipos_bsp_stm8s.c
     mipos/arch/stm8/stm8s_lib/src/stm8s_tim4.c
     mipos/arch/stm8/stm8s_lib/src/stm8s_clk.c
     mipos/arch/stm8/stm8s_lib/src/stm8s_rst.c
     mipos/arch/stm8/stm8s_lib/src/stm8s_iwdg.c
+    mipos/arch/stm8/stm8s_lib/src/stm8s_uart1.c
 )
 
-set(MIPOS_STM8_OBJECTS)
-foreach(source IN LISTS MIPOS_STM8_SOURCES)
-    string(REPLACE "/" "_" object_stem "${source}")
-    string(REPLACE "\\" "_" object_stem "${object_stem}")
-    string(REGEX REPLACE "\\.c$" "" object_stem "${object_stem}")
-    set(object "${MIPOS_STM8_BUILD_DIR}/${object_stem}.rel")
-    list(APPEND MIPOS_STM8_OBJECTS "${object}")
+function(mipos_add_stm8_sdcc_image target_name output_basename)
+    set(options)
+    set(one_value_args MAIN)
+    set(multi_value_args SOURCES DEFINITIONS)
+    cmake_parse_arguments(ARG "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
+    set(image_sources
+        ${ARG_MAIN}
+        ${MIPOS_STM8_COMMON_SOURCES}
+        ${ARG_SOURCES}
+    )
+
+    set(image_objects)
+    foreach(source IN LISTS image_sources)
+        string(REPLACE "/" "_" object_stem "${target_name}_${source}")
+        string(REPLACE "\\" "_" object_stem "${object_stem}")
+        string(REGEX REPLACE "\\.c$" "" object_stem "${object_stem}")
+        set(object "${MIPOS_STM8_BUILD_DIR}/${object_stem}.rel")
+        list(APPEND image_objects "${object}")
+
+        add_custom_command(
+            OUTPUT "${object}"
+            COMMAND "${MIPOS_SDCC}"
+                -mstm8
+                -c
+                ${MIPOS_STM8_INCLUDES}
+                ${MIPOS_STM8_DEFINITIONS}
+                ${ARG_DEFINITIONS}
+                ${MIPOS_STM8_SDCC_FLAGS}
+                "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
+                -o "${object}"
+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
+            WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+            VERBATIM
+        )
+    endforeach()
+
+    set(image "${MIPOS_STM8_BUILD_DIR}/${output_basename}.ihx")
     add_custom_command(
-        OUTPUT "${object}"
+        OUTPUT "${image}"
         COMMAND "${MIPOS_SDCC}"
             -mstm8
-            -c
-            ${MIPOS_STM8_INCLUDES}
-            ${MIPOS_STM8_DEFINITIONS}
-            ${MIPOS_STM8_SDCC_FLAGS}
-            "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
-            -o "${object}"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${source}"
+            --out-fmt-ihx
+            -lstm8
+            -o "${image}"
+            ${image_objects}
+        DEPENDS ${image_objects}
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
         VERBATIM
     )
-endforeach()
 
-set(MIPOS_STM8_IHX
-    "${MIPOS_STM8_BUILD_DIR}/${MIPOS_STM8_OUTPUT_BASENAME}.ihx")
+    add_custom_target(${target_name} DEPENDS "${image}")
+    set(${target_name}_IMAGE "${image}" PARENT_SCOPE)
+endfunction()
 
-add_custom_command(
-    OUTPUT "${MIPOS_STM8_IHX}"
-    COMMAND "${MIPOS_SDCC}"
-        -mstm8
-        --out-fmt-ihx
-        -lstm8
-        -o "${MIPOS_STM8_IHX}"
-        ${MIPOS_STM8_OBJECTS}
-    DEPENDS ${MIPOS_STM8_OBJECTS}
-    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-    VERBATIM
+mipos_add_stm8_sdcc_image(stm8-sdcc-helloworld stm8s_example
+    MAIN examples/stm8/main.c
 )
 
-add_custom_target(stm8-sdcc-helloworld ALL
-    DEPENDS "${MIPOS_STM8_IHX}"
+mipos_add_stm8_sdcc_image(stm8-sdcc-console stm8s_console
+    MAIN examples/stm8/console/main.c
+    SOURCES
+        mipos/mipos_console.c
+        mipos/mipos_queue.c
+    DEFINITIONS
+        -DENABLE_MIPOS_CONSOLE=1
+        -DMIPOS_STM8_UCSIM=1
+        -DMIPOS_CONSOLE_TX_STACK=512
+        -DMIPOS_CONSOLE_RX_STACK=512
+        -DRS232_TX_QUEUE_LEN=4
+        -DRS232_TX_BUF_LEN=64
+        -DRS232_RX_BUF_LEN=32
+        -DMIPOS_STM8_UCSIM_SCRIPTED_CONSOLE=1
 )
 
+add_custom_target(stm8-sdcc-all ALL
+    DEPENDS stm8-sdcc-helloworld stm8-sdcc-console
+)
 
 if(MIPOS_STM8_SIMULATOR)
     add_custom_target(stm8-sdcc-sim
         COMMAND "${MIPOS_STM8_SIMULATOR}"
             -p "sstm8> "
-            "${MIPOS_STM8_IHX}"
+            "${stm8-sdcc-helloworld_IMAGE}"
         DEPENDS stm8-sdcc-helloworld
+        USES_TERMINAL
+        VERBATIM
+    )
+
+    add_custom_target(stm8-sdcc-sim-console
+        COMMAND "${MIPOS_STM8_SIMULATOR}"
+            -g
+            -Z 7778
+            -S uart=1,port=7777,raw
+            -e "set error stack off"
+            -e "pc 0x8010"
+            "${stm8-sdcc-console_IMAGE}"
+        DEPENDS stm8-sdcc-console
         USES_TERMINAL
         VERBATIM
     )
@@ -106,6 +152,14 @@ else()
         DEPENDS stm8-sdcc-helloworld
         VERBATIM
     )
+
+    add_custom_target(stm8-sdcc-sim-console
+        COMMAND "${CMAKE_COMMAND}" -E echo
+            "ucsim_stm8/sstm8 was not found. Install sdcc-ucsim to run the STM8 console image."
+        DEPENDS stm8-sdcc-console
+        VERBATIM
+    )
 endif()
 
-message(STATUS "STM8 SDCC image: ${MIPOS_STM8_IHX}")
+message(STATUS "STM8 SDCC helloworld image: ${stm8-sdcc-helloworld_IMAGE}")
+message(STATUS "STM8 SDCC console image: ${stm8-sdcc-console_IMAGE}")
