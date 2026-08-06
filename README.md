@@ -381,13 +381,15 @@ Or use the helper scripts:
 
 ```sh
 sh scripts/run-stm8-sdcc.sh
-sh scripts/run-stm8-sdcc.sh --sim
+sh scripts/run-stm8-sdcc.sh --example console --sim
+sh scripts/run-stm8-sdcc.sh --test-console --rebuild
 ```
 
-The simulation option starts uCsim's STM8 simulator when it is available. This is an
-early CPU/toolchain simulation baseline; it is not yet a complete STM8S board
-model with fully automated UART and timer behavior. CI builds the SDCC firmware
-and verifies that the Intel HEX image is produced.
+The console example exposes the emulated UART on `localhost:7777` and the
+uCsim monitor on `localhost:7778`. The automated mode drives `help`, `ps`, and
+`dump` through the UART, verifies their output, and closes uCsim. The STM8S208
+simulation uses a 16 MHz clock and polls TIM4 overflow from the scheduler to
+advance the mipOS RTC without relying on an emulated interrupt vector table.
 
 ## Examples
 

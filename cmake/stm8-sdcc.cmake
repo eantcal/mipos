@@ -116,7 +116,6 @@ mipos_add_stm8_sdcc_image(stm8-sdcc-console stm8s_console
         -DRS232_TX_QUEUE_LEN=4
         -DRS232_TX_BUF_LEN=64
         -DRS232_RX_BUF_LEN=32
-        -DMIPOS_STM8_UCSIM_SCRIPTED_CONSOLE=1
 )
 
 add_custom_target(stm8-sdcc-all ALL
@@ -136,6 +135,7 @@ if(MIPOS_STM8_SIMULATOR)
     add_custom_target(stm8-sdcc-sim-console
         COMMAND "${MIPOS_STM8_SIMULATOR}"
             -g
+            -X 16M
             -Z 7778
             -S uart=1,port=7777,raw
             -e "set error stack off"

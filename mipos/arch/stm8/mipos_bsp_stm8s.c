@@ -88,11 +88,21 @@ void TIM4_UPD_OVF_IRQHandler(void) interrupt 23
 
 /* -------------------------------------------------------------------------- */
 
+#if MIPOS_STM8_UCSIM
+void mipos_bsp_stm8_ucsim_epoch(void)
+{
+    if (TIM4_GetFlagStatus(TIM4_FLAG_UPDATE) != RESET) {
+        mipos_update_rtc(1);
+        TIM4_ClearFlag(TIM4_FLAG_UPDATE);
+    }
+}
+#endif
+
+
+/* -------------------------------------------------------------------------- */
+
 void mipos_bsp_create_hw_rtc_timer(void)
 {
-#if MIPOS_STM8_UCSIM
-    return;
-#else
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_TIMER4, ENABLE);
 
     /* TimerTick = 1 ms
@@ -108,26 +118,21 @@ void mipos_bsp_create_hw_rtc_timer(void)
 #endif
 
     TIM4_UpdateRequestConfig(TIM4_UPDATESOURCE_GLOBAL);
+#if MIPOS_STM8_UCSIM
+    TIM4_ITConfig(TIM4_IT_UPDATE, DISABLE);
+#else
     TIM4_ITConfig(TIM4_IT_UPDATE, ENABLE);
-    TIM4_Cmd(ENABLE);
 #endif
+    TIM4_Cmd(ENABLE);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
-#if MIPOS_STM8_UCSIM
-#define MIPOS_STM8_UCSIM_SIMIF (*(volatile unsigned char*)0x5000)
-#ifdef MIPOS_STM8_UCSIM_SCRIPTED_CONSOLE
-static const char* mipos_stm8_ucsim_input = "help\rps\rdump 0 16\r";
-static unsigned int mipos_stm8_ucsim_input_pos = 0;
-#endif
-#endif
-
 void mipos_bsp_configure_rs232(unsigned int baud_rate)
 {
     if (!baud_rate) {
-        baud_rate = 115200;
+        baud_rate = 9600;
     }
 
     CLK_PeripheralClockConfig(CLK_PERIPHERAL_UART1, ENABLE);
@@ -149,13 +154,6 @@ unsigned int mipos_bsp_rs232_recv_byte(unsigned char* key)
     if (!key) {
         return 0;
     }
-
-#if MIPOS_STM8_UCSIM && defined(MIPOS_STM8_UCSIM_SCRIPTED_CONSOLE)
-    if (mipos_stm8_ucsim_input[mipos_stm8_ucsim_input_pos]) {
-        *key = (unsigned char)mipos_stm8_ucsim_input[mipos_stm8_ucsim_input_pos++];
-        return 1;
-    }
-#endif
 
     if (UART1_GetFlagStatus(UART1_FLAG_RXNE) == RESET) {
         return 0;
@@ -181,6 +179,50 @@ void mipos_bsp_rs232_putc(unsigned char c)
 /* -------------------------------------------------------------------------- */
 
 #ifdef __SDCC
+void* mipos_bsp_resume_address;
+void* mipos_bsp_resume_y;
+void* mipos_bsp_resume_context;
+
+int mipos_bsp_setjmp(void* env) __naked
+{
+    (void)env;
+
+    __asm
+        ldw (0x04, x), y
+        ldw y, sp
+        ldw (0x02, x), y
+        popw y
+        ldw (x), y
+        clrw x
+        jp (y)
+    __endasm;
+}
+
+
+void mipos_bsp_longjmp(void* env) __naked
+{
+    (void)env;
+
+    __asm
+        ldw _mipos_bsp_resume_context+0, x
+        ldw x, (x)
+        ldw _mipos_bsp_resume_address+0, x
+        ldw x, _mipos_bsp_resume_context+0
+        ldw x, (0x04, x)
+        ldw _mipos_bsp_resume_y+0, x
+        ldw x, _mipos_bsp_resume_context+0
+        ldw x, (0x02, x)
+        addw x, #2
+        ldw sp, x
+        ldw x, _mipos_bsp_resume_address+0
+        pushw x
+        ldw y, _mipos_bsp_resume_y+0
+        ldw x, #1
+        ret
+    __endasm;
+}
+
+
 void* mipos_bsp_call_task_context;
 
 int mipos_bsp_call1(void* entry_point, void* param) __naked

@@ -67,7 +67,11 @@ typedef char bool_t;
 /* ------------------------------------------------------------------------- */
 
 /** Registers state */
+#if defined(__SDCC) && MIPOS_TARGET_STM8
+typedef unsigned char registers_state_t[6];
+#else
 typedef jmp_buf registers_state_t;
+#endif
 
 /* ------------------------------------------------------------------------- */
 

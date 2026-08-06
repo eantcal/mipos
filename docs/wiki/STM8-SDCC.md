@@ -6,20 +6,18 @@ older proprietary Cosmic or Raisonance toolchains.
 
 ## Status
 
-The current SDCC path is a first buildable baseline:
+The SDCC path now builds and executes two firmware images:
 
-- target selector: `MIPOS_TARGET_STM8_SDCC=ON`;
-- compiler: `sdcc -mstm8`;
-- default device define: `STM8S208`;
-- output image: `build-stm8-sdcc/stm8-sdcc/stm8s_example.ihx`;
-- example application: `examples/stm8/main.c`;
-- BSP: `mipos/arch/stm8/mipos_bsp_stm8s.c`;
-- timer/reset/watchdog support through the local STM8S Standard Peripheral
-  Library subset.
+- `stm8-sdcc-helloworld` produces `stm8s_example.ihx`;
+- `stm8-sdcc-console` produces `stm8s_console.ihx`;
+- the console runs the standard mipOS commands over the STM8S208 UART model;
+- the SDCC task context saves the return PC, stack pointer, and `Y` register;
+- uCsim runs at 16 MHz and TIM4 advances the kernel RTC through a scheduler
+  polling hook.
 
 The CMake build uses explicit custom commands instead of treating SDCC as a
-hosted C compiler. That keeps the invocation predictable and avoids CMake
-probing assumptions that are not useful for a freestanding 8-bit target.
+hosted C compiler. That keeps the freestanding invocation predictable and
+makes the generated Intel HEX images easy to use from WSL and CI.
 
 ## Requirements
 
@@ -79,7 +77,8 @@ Shell:
 
 ```sh
 sh scripts/run-stm8-sdcc.sh
-sh scripts/run-stm8-sdcc.sh --sim
+sh scripts/run-stm8-sdcc.sh --example console --sim
+sh scripts/run-stm8-sdcc.sh --test-console --rebuild
 sh scripts/run-stm8-sdcc.sh --rebuild --mcu STM8S103
 ```
 
@@ -103,22 +102,40 @@ instead of placing generated `.rel` files next to project sources.
 
 ## Simulation Scope
 
-`ucsim_stm8`/`sstm8` simulates the STM8 CPU and can load the generated Intel HEX image. This
-is useful for early toolchain and instruction-level bring-up. It is not a full
-board model with the exact UART/timer/watchdog wiring of an STM8S Discovery
-board, so the first automated coverage is intentionally a compile-and-image
-smoke test.
+For the console image, uCsim models the STM8S208 CPU and UART. mipOS UART data
+is available on `localhost:7777`; the uCsim command monitor listens on
+`localhost:7778`.
 
-The next useful simulation step is a tiny SDCC-specific smoke firmware that
-exercises startup, a cooperative yield path, and a serial byte path against
-uCsim streams. After that, the STM8 BSP can grow toward a repeatable console
-smoke test.
+Run the interactive console:
+
+```sh
+sh scripts/run-stm8-sdcc.sh --example console --sim
+nc localhost 7777
+```
+
+Run the automated smoke test:
+
+```sh
+sh scripts/run-stm8-sdcc.sh --test-console --rebuild
+```
+
+The smoke test uses UART flow control at character granularity because the
+STM8 UART has no receive FIFO. It waits for each echoed character and for the
+prompt between commands, then checks the output of `help`, `ps`, and
+`dump 0 16`. TIM4 remains active in uCsim; its overflow flag is polled by the
+scheduler to advance the mipOS RTC without enabling a simulated interrupt
+vector.
+
+This is a CPU/peripheral simulation rather than a complete electrical model of
+an STM8S Discovery board. GPIO wiring, external devices, and board-level timing
+still require hardware or a richer board simulator.
 
 ## CI Coverage
 
-GitHub Actions includes an `stm8-sdcc` job that installs `sdcc` and
-`sdcc-ucsim`, configures `MIPOS_TARGET_STM8_SDCC=ON`, builds
-`stm8-sdcc-helloworld`, and checks that the `.ihx` image is produced.
+GitHub Actions installs `sdcc` and `sdcc-ucsim`, builds the helloworld image,
+and runs the console smoke test in uCsim. The job therefore covers image
+generation, cooperative context resume, the TIM4 clock path, UART input/output,
+and the built-in `help`, `ps`, and `dump` commands.
 
 ## Related Pages
 

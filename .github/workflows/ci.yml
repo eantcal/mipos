@@ -72,6 +72,8 @@ jobs:
         run: cmake --build build-stm8-sdcc --target stm8-sdcc-helloworld --parallel
       - name: Check image
         run: test -s build-stm8-sdcc/stm8-sdcc/stm8s_example.ihx
+      - name: Test console in uCsim
+        run: sh scripts/run-stm8-sdcc.sh --test-console
 
   qemu-arm:
     runs-on: ubuntu-latest

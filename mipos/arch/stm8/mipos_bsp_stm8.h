@@ -103,7 +103,12 @@ extern void* mipos_get_sp(void);
     } while (0)
 #define STACK_UNIT 1
 
+#if MIPOS_STM8_UCSIM
+void mipos_bsp_stm8_ucsim_epoch(void);
+#define mipos_bsp_notify_scheduler_epoch() mipos_bsp_stm8_ucsim_epoch()
+#else
 #define mipos_bsp_notify_scheduler_epoch() /*UNUSED*/
+#endif
 #define mipos_bsp_dbg_device_setup()       /*UNUSED*/
 #define mipos_bps_init_sp()                /*UNUSED*/
 
@@ -135,7 +140,14 @@ extern void* mipos_get_sp(void);
 
 /* -------------------------------------------------------------------------- */
 
-#ifdef BUILT_IN_SETJMP
+#if defined(__SDCC)
+
+int mipos_bsp_setjmp(void* env);
+void mipos_bsp_longjmp(void* env);
+#define mipos_save_context(_x) mipos_bsp_setjmp((void*)(_x))
+#define mipos_context_switch_to(_x) mipos_bsp_longjmp((void*)(_x))
+
+#elif defined(BUILT_IN_SETJMP)
 
 typedef unsigned char jmp_bufex[16];
 int setjmpex(jmp_bufex env);
